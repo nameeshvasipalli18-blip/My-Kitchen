@@ -1,0 +1,149 @@
+.saved-trips-container {
+  display: flex;
+  font-family: "Figtree", "Varela Round", "Montserrat";
+  font-size: 1rem;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+  transition: all 0.2s ease-in-out;
+}
+
+.saved-trip-container {
+    display: flex;
+    flex-direction: column;
+    padding: 0.5rem;
+    gap: 10px;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    border-radius: 5px;
+    background: var(--background, #ffffff);
+    border: 1px solid var(--border, #ccc);
+    box-shadow: 0 2px 4px var(--shadow, rgba(0,0,0,.1));
+    transition: all 0.2s ease-in-out;
+}
+
+.selected-trip {
+    opacity: 0.6;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(-1rem);
+    }
+    to {
+        transform: translateY(0);
+    }
+}
+
+.selected-trip-highlight {
+    transform: scale(1.05);
+    transition: all 0.1s ease-in-out;
+}
+
+.selected-trip, .selected-trip-highlight {
+  padding: 1px;
+  min-width: 3rem;
+  max-width: 12rem;
+}
+
+.saved-item-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0.5rem;
+  border-radius: 5px;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--background, #fffdfd);
+}
+
+.saved-item-name {
+  font-weight: bold;
+  font-size: 1rem;
+  background-color: var(--primary, #73bb37);
+  color: #ffffff;
+  padding: 0.2rem 0.5rem;
+  border-radius: 5px;
+}
+
+.saved-item-price {
+  font-size: 0.9rem;
+  color: var(--primary, #73bb37);
+  font-weight: bold;
+}
+
+.saved-item-paid-by {
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: var(--primary, #73bb37);
+}
+
+.saved-trip-buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+  justify-content: center;
+  align-items: center;
+}
+
+.saved-item-buttons button {
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.saved-item-buttons button:hover {
+  background-color: var(--primary, #73bb37);
+  color: var(--text, #ffffff);
+  transform: scale(1.1);
+  transition: transform 0.1s ease-in-out;
+}
+.saved-trip-participants {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+  justify-content: center;
+  align-items: center;
+}
+
+
+.trip-header {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  grid-template-rows: auto;
+  gap: 10px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.saved-trip-participants {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+  justify-content: center;
+  align-items: center;
+}
+
+.trip-date, .trip-store {
+  grid-column: span 1;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  background-color: var(--primary, #73bb37);
+  color: #ffffff;
+  padding: 0.2rem 0.5rem;
+  border-radius: 5px;
+}
+
+.saved-trip-items {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+  align-items: center;
+  justify-content: center;
+}

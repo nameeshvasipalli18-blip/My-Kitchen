@@ -1,0 +1,42 @@
+
+.home-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100vh;
+  background-color: #f5f5f5;
+}
+
+.home-content {
+  text-align: center;
+}
+.head {
+    font-size: 2.5rem;
+    margin-top: 15rem;
+    color: #333;
+    margin-bottom: 1rem;
+}
+
+.tagline {
+    font-size: 1.5rem;
+    color: #777;
+}
+
+.button-container {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+.split-button {
+    padding: 1rem 2rem;
+    font-size: 1.2rem;
+    background-color: #73bb37;
+    color: #fff;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+.split-button:hover {
+    background-color: #5a9b2a;
+}

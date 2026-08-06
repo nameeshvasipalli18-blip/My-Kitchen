@@ -1,0 +1,112 @@
+Modified Splitwise logic from backend/main.py
+
+This logic validates the people and item details, calculates each person's
+share in cents to avoid floating-point rounding issues, then returns balances
+and simplified settlements.
+
+
+def to_cents(amount: float) -> int:
+    decimal_amount = Decimal(str(amount)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    return int(decimal_amount * 100)
+
+
+def format_money(cents: int) -> float:
+    return round(cents / 100, 2)
+
+
+def split_amount(total_cents: int, people: list[str]) -> dict[str, int]:
+    base_share, remainder = divmod(total_cents, len(people))
+    return {
+        person: base_share + (1 if index < remainder else 0)
+        for index, person in enumerate(people)
+    }
+
+
+def get_split_people(participants: list[str], item: Item) -> list[str]:
+    if item.splitType == "all":
+        return participants
+    if item.splitType == "custom":
+        return item.splitBetween
+    if item.splitType == item.paidBy:
+        return [item.paidBy]
+    raise HTTPException(status_code=400, detail="Invalid split type.")
+
+
+def calculate_split(initials: list[str], item: Item) -> dict:
+    participants = [name.strip() for name in initials if name.strip()]
+    if not participants:
+        raise HTTPException(status_code=400, detail="Add at least one person.")
+    if len(participants) != len(set(participants)):
+        raise HTTPException(status_code=400, detail="Person names must be unique.")
+    if item.paidBy not in participants:
+        raise HTTPException(status_code=400, detail="Paid by must be one of the people.")
+
+    total_cents = to_cents(item.price)
+    if total_cents <= 0:
+        raise HTTPException(status_code=400, detail="Price must be greater than zero.")
+
+    split_people = get_split_people(participants, item)
+    if not split_people:
+        raise HTTPException(status_code=400, detail="Choose at least one person to split with.")
+
+    invalid_people = [person for person in split_people if person not in participants]
+    if invalid_people:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown split participant: {', '.join(invalid_people)}.",
+        )
+
+    shares = {person: 0 for person in participants}
+    shares.update(split_amount(total_cents, split_people))
+
+    balances = {person: -share for person, share in shares.items()}
+    balances[item.paidBy] += total_cents
+
+    debtors = sorted(
+        ((person, -amount) for person, amount in balances.items() if amount < 0),
+        key=lambda entry: entry[1],
+        reverse=True,
+    )
+    creditors = sorted(
+        ((person, amount) for person, amount in balances.items() if amount > 0),
+        key=lambda entry: entry[1],
+        reverse=True,
+    )
+
+    settlements = []
+    debtor_index = 0
+    creditor_index = 0
+    while debtor_index < len(debtors) and creditor_index < len(creditors):
+        debtor, owes = debtors[debtor_index]
+        creditor, is_owed = creditors[creditor_index]
+        amount = min(owes, is_owed)
+
+        settlements.append({
+            "from": debtor,
+            "to": creditor,
+            "amount": format_money(amount),
+        })
+
+        debtors[debtor_index] = (debtor, owes - amount)
+        creditors[creditor_index] = (creditor, is_owed - amount)
+
+        if debtors[debtor_index][1] == 0:
+            debtor_index += 1
+        if creditors[creditor_index][1] == 0:
+            creditor_index += 1
+
+    return {
+        "itemName": item.name,
+        "total": format_money(total_cents),
+        "paidBy": item.paidBy,
+        "splitBetween": split_people,
+        "shares": {person: format_money(amount) for person, amount in shares.items()},
+        "balances": {person: format_money(amount) for person, amount in balances.items()},
+        "settlements": settlements,
+    }
+
+
+@app.post("/split")
+async def split(data: Split):
+    result = calculate_split(data.initialInputs, data.item)
+    return {"message": "Split processed successfully", "result": result}

@@ -1,0 +1,72 @@
+export const themes = [
+  {
+    character: "Luffy",
+    primary: "#D32F2F",
+    background: "#FDECEC",
+    border: "#C62828",
+    shadow: "rgba(211,47,47,0.25)",
+  },
+  {
+    character: "Zoro",
+    primary: "#2E7D32",
+    background: "#EDF8EE",
+    border: "#1B5E20",
+    shadow: "rgba(46,125,50,0.25)",
+  },
+  {
+    character: "Sanji",
+    primary: "#F9A825",
+    background: "#FFF8E1",
+    border: "#F57F17",
+    shadow: "rgba(249,168,37,0.25)",
+  },
+  {
+    character: "Usopp",
+    primary: "#8D6E63",
+    background: "#F4ECE8",
+    border: "#6D4C41",
+    shadow: "rgba(141,110,99,0.25)",
+  },
+  {
+    character: "Chopper",
+    primary: "#EC6CA4",
+    background: "#FDEEF5",
+    border: "#D81B60",
+    shadow: "rgba(236,108,164,0.25)",
+  },
+  {
+    character: "Nami",
+    primary: "#F57C00",
+    background: "#FFF3E0",
+    border: "#E65100",
+    shadow: "rgba(245,124,0,0.25)",
+  },
+  {
+    character: "Robin",
+    primary: "#6A1B9A",
+    background: "#F3E5F5",
+    border: "#4A148C",
+    shadow: "rgba(106,27,154,0.25)",
+  },
+  {
+    character: "Franky",
+    primary: "#0288D1",
+    background: "#E1F5FE",
+    border: "#01579B",
+    shadow: "rgba(2,136,209,0.25)",
+  },
+  {
+    character: "Brook",
+    primary: "#FFEB3B",
+    background: "#FFFDE7",
+    border: "#FBC02D",
+    shadow: "rgba(255,235,59,0.25)",
+  },
+  {
+    character: "Jinbe",
+    primary: "#009688",
+    background: "#E0F2F1",
+    border: "#00695C",
+    shadow: "rgba(0,150,136,0.25)",
+  }
+];

@@ -1,0 +1,132 @@
+.lock-button {
+  padding: 0.5rem 1rem;
+  font-family: "Figtree", "Varela Round", "Montserrat";
+  font-size: 1rem;
+  border: none;
+  border-radius: 0.7rem;
+  background-color: var(--primary, #73bb37);
+  color: var(--text, #ffffff);
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+
+.locked-inputs {
+  display: flex;
+  margin-top: 2rem;
+  flex-direction: row;
+  gap: 10px;
+  justify-content: center;
+}
+
+.item-inputs {
+  width: 100%;
+  display: flex;
+  align-items: stretch;
+  flex-direction: row;
+  gap: 10px;
+  justify-content: flex-start;
+  padding: 0.5rem;
+  border-radius: 1rem;
+  box-shadow: 5px 10px 7px rgba(0,0,0,.1);
+  color: #ffffff;
+}
+
+.item-inputs > * {
+  width: 50%;
+  padding: 0.5rem;
+  font-family: "Figtree", "Varela Round", "Montserrat";
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 0.7rem;
+  flex: 1 0 5rem;
+  transition: flex 0.25s ease;
+}
+
+.item-inputs > *:focus {
+  flex: 2 0 5rem;
+  outline: none;
+  border-color: #73bb37;
+}
+
+.shopping-trip-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.shopping-defaults {
+  display: flex;
+  color: #ffffff;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: #73bb37;
+  box-shadow: 5px 10px 7px rgba(0,0,0,.1);
+  border-radius: 1rem;
+}
+
+.shopping-defaults div {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+}
+.shopping-defaults input {
+  padding: 0.5rem;
+  font-family: "Figtree", "Varela Round", "Montserrat";
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 0.7rem;
+}
+
+.shopping-defaults select {
+  padding: 0.5rem;
+  font-family: "Figtree", "Varela Round", "Montserrat";
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 0.7rem;
+}
+
+.shopping-defaults button {
+  padding: 0.5rem 1rem;
+  font-family: "Figtree", "Varela Round", "Montserrat";
+  font-size: 1rem;
+  border: none;
+  border-radius: 0.7rem;
+  background-color: var(--text, #ffffff);
+  color: var(--primary, #73bb37);
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.default-options {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 1rem;
+}
+
+.default-options select {
+  padding: 0.5rem;
+  font-family: "Figtree", "Varela Round", "Montserrat";
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 0.7rem;
+}
+
+.default-options select:focus {
+  outline: none;
+  border-color: #73bb37;
+}
