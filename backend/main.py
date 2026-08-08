@@ -73,15 +73,25 @@ class ParticipantTable(SQLModel, table=True):
     id: int | None = SQLField(default=None, primary_key=True)
     name: str
 
+class Participant(SQLModel):
+    id: int | None = None
+    name: str
+
 sqlite_file_name = "database.db"
 sqlite_url = f"sqlite:///{sqlite_file_name}"
 engine = create_engine(sqlite_url, echo=True)
 SQLModel.metadata.create_all(engine)
 
 def create_participant(data: Participants):
+    participants = validate_participants(data.participants)
     with Session(engine) as session:
+        existing_participants = session.query(ParticipantTable).all()
+        for participant in existing_participants:
+            session.delete(participant)
+        session.commit()
+
         participant_ids = []
-        for name in data.participants:
+        for name in participants:
             participant = ParticipantTable(name=name)
             session.add(participant)
             session.commit()
@@ -293,13 +303,31 @@ async def add_participants(data: Participants):
         participants = session.query(ParticipantTable).filter(ParticipantTable.id.in_(participant_ids)).all()
         return {"participants": [p.name for p in participants]}
 
+@app.post("/newParticipant")
+async def add_new_participant(data: Participant):
+    with Session(engine) as session:
+        participant = ParticipantTable(name=data.name)
+        session.add(participant)
+        session.commit()
+        session.refresh(participant)
+        return {"id": participant.id, "name": participant.name}
+
+
 @app.get("/participants")
 async def get_participants():
     with Session(engine) as session:
         participants = session.query(ParticipantTable).all()
         return {"participants": [p.name for p in participants] if participants else []}
 
-
+@app.delete("/deleteParticipant/{participant_id}")
+async def delete_participant(participant_id: int):
+    with Session(engine) as session:
+        participant = session.query(ParticipantTable).filter(ParticipantTable.id == participant_id).first()
+        if not participant:
+            raise HTTPException(status_code=404, detail="Participant not found")
+        session.delete(participant)
+        session.commit()
+        return {"message": "Participant deleted successfully", "participantId": participant_id}
 
 @app.post("/manualsplit")
 async def split(data: Split):

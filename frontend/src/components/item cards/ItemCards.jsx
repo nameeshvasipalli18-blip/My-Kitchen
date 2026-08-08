@@ -1,4 +1,4 @@
-import {useState, useEffect} from "react";
+import {useState} from "react";
 import api from '../../api.js';
 import {
   FaStore,
@@ -18,24 +18,7 @@ export const ItemCards = ({selectedItemIndex, setSelectedItemIndex, setCurrentIt
     return null;
   };
 
-  useEffect(() => {
-    const fetchTrips = async () => {
-      try {
-        const response = await api.get('/trips');
-        if (response.status === 200) {
-          const fetchedTrips = response.data;
-          setShoppingTrips(fetchedTrips);
-        } else {
-          console.error('Failed to fetch trips:', response.status, response.data);
-        }
-      } catch (error) {
-        console.error('Error fetching trips:', error);
-      }
-    };
 
-    fetchTrips();
-  }, [setShoppingTrips]);
-  
   const handleDeleteTrip = async (tripDbId) => {
     const tripToDelete = trips.find((trip) => resolveTripId(trip) === tripDbId);
     if (!tripToDelete) {
@@ -86,7 +69,7 @@ export const ItemCards = ({selectedItemIndex, setSelectedItemIndex, setCurrentIt
           const tripDbId = resolveTripId(trip);
           return (
             <div key={tripDbId ?? index} 
-              className={`saved-trip-container ${hoveredTripId === tripDbId || selectedItemIndex === tripDbId ? 'selected-trip-highlight' : ""}`}
+              className={`saved-trip-container ${selectedItemIndex === tripDbId && hoveredTripId === tripDbId ? 'selected-trip-highlight' : ""}`}
               style={{
                 "--primary": participant?.theme.primary,
                 "--background": participant?.theme.background,

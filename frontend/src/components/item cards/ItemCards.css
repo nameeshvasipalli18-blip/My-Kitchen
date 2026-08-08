@@ -12,11 +12,15 @@
 .saved-trip-container {
     display: flex;
     flex-direction: column;
+  width: fit-content;
+  max-width: 100%;
     padding: 0.5rem;
     gap: 10px;
     align-items: center;
     justify-content: space-between;
     cursor: pointer;
+  box-sizing: border-box;
+  overflow: hidden;
     border-radius: 5px;
     background: var(--background, #ffffff);
     border: 1px solid var(--border, #ccc);
@@ -39,14 +43,12 @@
 }
 
 .selected-trip-highlight {
-    transform: scale(1.05);
+    transform: scale(1.03);
     transition: all 0.1s ease-in-out;
 }
 
 .selected-trip, .selected-trip-highlight {
-  padding: 1px;
-  min-width: 3rem;
-  max-width: 12rem;
+  max-width: 100%;
 }
 
 .saved-item-content {
@@ -54,6 +56,9 @@
   flex-direction: column;
   gap: 10px;
   padding: 0.5rem;
+  max-width: 100%;
+  flex: 0 1 auto;
+  box-sizing: border-box;
   border-radius: 5px;
   align-items: center;
   justify-content: space-between;
@@ -61,12 +66,16 @@
 }
 
 .saved-item-name {
+  display: block;
+  max-width: 100%;
   font-weight: bold;
   font-size: 1rem;
   background-color: var(--primary, #73bb37);
   color: #ffffff;
   padding: 0.2rem 0.5rem;
   border-radius: 5px;
+  text-align: center;
+  overflow-wrap: anywhere;
 }
 
 .saved-item-price {
@@ -143,6 +152,8 @@
 .saved-trip-items {
   display: flex;
   flex-direction: row;
+  flex-wrap: nowrap;
+  width: auto;
   gap: 5px;
   align-items: center;
   justify-content: center;

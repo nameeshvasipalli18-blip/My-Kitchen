@@ -24,6 +24,9 @@ const ManualSplit = () => {
   const [participants, setParticipants] = useState([]);
   const [lockButtonTheme, setLockButtonTheme] = useState([]);
   const [tripId, setTripId] = useState(0);
+  const [newParticipant, setNewParticipant] = useState(false);
+  const [changedParticipants, setChangedParticipants] = useState(false);
+  const [participantIndex, setParticipantIndex] = useState(null);
   const [shoppingTrip, setShoppingTrip] = useState({
       id: tripId,
       date: new Date().toISOString().split("T")[0],
@@ -39,12 +42,33 @@ const ManualSplit = () => {
   const [shoppingTrips, setShoppingTrips] = useState([]);
   const safeInitialInputs = Array.isArray(initialInputs) ? initialInputs : [];
 
+  const newparticipantSubmit = async () => {
+    const participantName = String(safeInitialInputs[safeInitialInputs.length - 1] ?? "").trim();
+    if (!participantName) {
+      return;
+    }
+
+    try {
+      const response = await api.post('/newParticipant', { name: participantName });
+      if (response.status === 200) {
+        console.log('New participant submitted successfully:', response.data);
+        setNewParticipant(false);
+      }
+    }
+    catch (error) {
+      console.error('Error submitting new participant:', error);
+    }
+  };
+
+
   useEffect(() => {
     const isMountedRef = { current: true };
     const timerId = setTimeout(() => {
       (async () => {
         try {
           const response = await api.get('/participants');
+          const tripResponse = await api.get('/trips');
+
           if (response.status === 200 && isMountedRef.current) {
             console.log('Participants fetched successfully:', response.data);
             const fetchedParticipants = Array.isArray(response.data?.participants)
@@ -61,19 +85,20 @@ const ManualSplit = () => {
               fetchedParticipants.length > 0 &&
               fetchedParticipants.every((name) => String(name).trim() !== "")
             );
+            setShoppingTrips(Array.isArray(tripResponse.data.trips) ? tripResponse.data.trips : []);
           }
         } catch (error) {
           console.error('Error fetching participants:', error);
         }
       })();
-    }, 0);
+    }
+    , 0);
 
     return () => {
       clearTimeout(timerId);
       isMountedRef.current = false;
     };
   }, []);
-
 
 
   return (
@@ -92,7 +117,8 @@ const ManualSplit = () => {
         setLockButtonTheme={setLockButtonTheme}
         inputRef={inputRef}
         itemNameRef={itemNameRef}
-      />)}
+      />
+      )}
 
       {safeInitialInputs.length > 0 && safeInitialInputs.every((name) => String(name).trim() !== "") && !initialInputsLocked && (
         <button className="lock-button" onClick = {() => {
@@ -102,6 +128,9 @@ const ManualSplit = () => {
             theme: themes[index % themes.length],
           }));
           setParticipants(participants);
+          if (newParticipant) {
+            newparticipantSubmit();
+          }
           setTimeout(() => {
             itemNameRef.current?.focus();
           }, 0);
@@ -110,7 +139,7 @@ const ManualSplit = () => {
 
       {initialInputsLocked && (
         <div className = "locked-inputs">
-        {safeInitialInputs.map((value, index) => (
+        {initialInputs.map((value, index) => (
           <div key={index}>
             <button 
             className="lock-button" 
@@ -120,16 +149,61 @@ const ManualSplit = () => {
               "--border": themes[index % themes.length].border,
               "--shadow": themes[index % themes.length].shadow,
             }}
-            onClick = {() => {setInitialInputsLocked(false)}}>{value}</button>
+            onClick = {() => {
+              setChangedParticipants(true);
+              setParticipantIndex(index+1);
+            }}
+            >
+              {value}
+            </button>
           </div>
         ))}
         <div>
+          {changedParticipants && participantIndex !== null && (
+            <div className="participant-edit">
+              <button className="lock-button" style={{
+                "--primary": themes[(participantIndex - 1) % themes.length].primary,
+                "--background": themes[(participantIndex - 1) % themes.length].background,
+                "--border": themes[(participantIndex - 1) % themes.length].border,
+                "--shadow": themes[(participantIndex - 1) % themes.length].shadow,
+              }}
+                onClick={async () => {
+                  const deletedParticipant = await api.delete(`/deleteParticipant/${participantIndex}`);
+                  if (deletedParticipant.status === 200) {
+                    console.log('Participant deleted successfully:', deletedParticipant.data);
+                    await api.get('/participants').then((response) => {
+                      if (response.status === 200) {
+                        const updatedParticipants = Array.isArray(response.data?.participants)
+                          ? response.data.participants
+                          : [];
+                        setInitialInputs(updatedParticipants);
+                        setParticipants(
+                          updatedParticipants.map((name, index) => ({
+                            name,
+                            theme: themes[index % themes.length],
+                          }))
+                        );
+                        setChangedParticipants(prev => !prev);
+                        setParticipantIndex(null);
+                      }
+                    });
+                  } 
+                }}
+                  >
+                {`Delete ${initialInputs[participantIndex - 1]}`}
+              </button>
+            </div>
+            )}
           <button className="lock-button" onClick = {() => {
               setInitialInputsLocked(false);
-              const newParticipants = [...safeInitialInputs, ""]; 
-              setInitialInputs(newParticipants);
+              setNewParticipant(true);
+              setInitialInputs((prev) => [...prev, ""]);
+              setParticipants((prev) => [...prev, {
+                name: "",
+                theme: themes[prev.length % themes.length],
+              }]);
               setTimeout(() => {
-                inputRef.current[newParticipants.length - 1]?.focus();
+                inputRef.current[initialInputs.length]?.focus();
               }, 0);
             }}>+</button>
           </div>
@@ -154,7 +228,7 @@ const ManualSplit = () => {
         />
       )
         }
-        {shoppingTrips.length > 0 && 
+        {initialInputsLocked && shoppingTrips.length > 0 && 
           <ItemCards
             selectedItemIndex={selectedItemIndex}
             setSelectedItemIndex={setSelectedItemIndex}

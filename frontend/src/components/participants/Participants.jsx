@@ -1,6 +1,6 @@
 import { themes } from '../themes/themes';
-import './Participants.css';
 import api from '../../api.js';
+import './Participants.css';
 
 export const Participants = ({splitBetween, setSplitBetween, initialInputs, setInitialInputs, setInitialInputsLocked, setParticipants, inputRef, itemNameRef}) => {
     const generateInputs = () => {
@@ -11,23 +11,23 @@ export const Participants = ({splitBetween, setSplitBetween, initialInputs, setI
     }
     setInitialInputs((prev) => Array.from({length:numPeople}, (_,i) => prev[i] ?? ""))
     };
+
     const handleSubmit = async () => {
       try {
         const response = await api.post('/participantable', { participants: initialInputs });
         if (response.status === 200) {
           console.log('Participants submitted successfully:', response.data);
-          setInitialInputs(response.data.participants.map(p => p.name));
+          setInitialInputs(response.data.participants);
         }
       } catch (error) {
         console.error('Error submitting participants:', error);
       }
     };
 
-
     return (
         <div className = "participants">
         <h3>Participants</h3>
-        <div className="split-between">
+          <div className="split-between">
           <label> 
             Split Between: 
           </label>
@@ -42,6 +42,7 @@ export const Participants = ({splitBetween, setSplitBetween, initialInputs, setI
         }}}
         />
       </div>
+        
       <div>
         {initialInputs.map((value,index) => (
           <div key ={index} className = "participant-input">
@@ -64,8 +65,8 @@ export const Participants = ({splitBetween, setSplitBetween, initialInputs, setI
                     theme: themes[index % themes.length],
                   }));
                   setParticipants(participants);
-                  handleSubmit()
-                }
+                  handleSubmit();
+                } 
                 setTimeout(() => {
                   itemNameRef.current?.focus()
                 }, 0);
@@ -76,4 +77,4 @@ export const Participants = ({splitBetween, setSplitBetween, initialInputs, setI
         </div>
         </div>
     )
-}  
+}     
