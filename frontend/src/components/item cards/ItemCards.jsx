@@ -1,4 +1,4 @@
-import {useState} from "react";
+import {useState, useEffect} from "react";
 import api from '../../api.js';
 import {
   FaStore,
@@ -18,6 +18,24 @@ export const ItemCards = ({selectedItemIndex, setSelectedItemIndex, setCurrentIt
     return null;
   };
 
+  useEffect(() => {
+    const fetchTrips = async () => {
+      try {
+        const response = await api.get('/trips');
+        if (response.status === 200) {
+          const fetchedTrips = response.data;
+          setShoppingTrips(fetchedTrips);
+        } else {
+          console.error('Failed to fetch trips:', response.status, response.data);
+        }
+      } catch (error) {
+        console.error('Error fetching trips:', error);
+      }
+    };
+
+    fetchTrips();
+  }, [setShoppingTrips]);
+  
   const handleDeleteTrip = async (tripDbId) => {
     const tripToDelete = trips.find((trip) => resolveTripId(trip) === tripDbId);
     if (!tripToDelete) {
