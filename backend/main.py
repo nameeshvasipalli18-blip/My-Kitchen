@@ -322,9 +322,11 @@ async def get_participants():
 @app.delete("/deleteParticipant/{participant_id}")
 async def delete_participant(participant_id: int):
     with Session(engine) as session:
-        participant = session.query(ParticipantTable).filter(ParticipantTable.id == participant_id).first()
-        if not participant:
+        participants = session.query(ParticipantTable).order_by(ParticipantTable.id).all()
+        participant_index = participant_id - 1
+        if participant_index < 0 or participant_index >= len(participants):
             raise HTTPException(status_code=404, detail="Participant not found")
+        participant = participants[participant_index]
         session.delete(participant)
         session.commit()
         return {"message": "Participant deleted successfully", "participantId": participant_id}
