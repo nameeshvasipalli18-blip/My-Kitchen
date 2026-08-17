@@ -3,6 +3,7 @@ import {Participants} from '../../components/participants/Participants.jsx';
 import {TripManager} from '../../components/item inputs/TripManager.jsx';
 import { ItemCards } from '../../components/item cards/ItemCards.jsx';
 import {themes} from '../../components/themes/themes.jsx';
+import { FaTimes } from 'react-icons/fa';
 import api from '../../api.js';
 import './ManualSplit.css';
 
@@ -38,6 +39,23 @@ const ManualSplit = () => {
     });
   const [shoppingTrips, setShoppingTrips] = useState([]);
   const safeInitialInputs = Array.isArray(initialInputs) ? initialInputs : [];
+
+  const closeAddParticipantMode = () => {
+    const restoredParticipants = safeInitialInputs.filter(
+      (name) => String(name).trim() !== ""
+    );
+
+    setInitialInputs(restoredParticipants);
+    setParticipants(
+      restoredParticipants.map((name, index) => ({
+        name,
+        theme: themes[index % themes.length],
+      }))
+    );
+    setInitialInputsLocked(restoredParticipants.length > 0);
+    setSplitBetween(String(restoredParticipants.length));
+    setAddParticipantMode(false);
+  };
 
 
   useEffect(() => {
@@ -87,6 +105,17 @@ const ManualSplit = () => {
       </div>
       <div className={`kitchen-split-body${initialInputsLocked ? ' participants-ready' : ''}${addParticipantMode ? ' add-participant-mode' : ''}`}>
         <div className="participants-container">
+          {addParticipantMode && (
+            <button
+              type="button"
+              className="add-participant-close-button"
+              aria-label="Close add participant screen"
+              title="Back to main screen"
+              onClick={closeAddParticipantMode}
+            >
+              <FaTimes aria-hidden="true" />
+            </button>
+          )}
           <Participants
             splitBetween={splitBetween}
             setSplitBetween={setSplitBetween}
