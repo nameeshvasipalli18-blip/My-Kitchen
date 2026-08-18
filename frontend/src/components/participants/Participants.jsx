@@ -1,7 +1,7 @@
 import { themes } from '../themes/themes';
 import api from '../../api.js';
 import { useRef, useState } from 'react';
-import { FaEdit, FaTimes, FaTrash } from 'react-icons/fa';
+import { FaEdit, FaTimes, FaTrash, FaUsers } from 'react-icons/fa';
 import './Participants.css';
 
 export const Participants = ({
@@ -15,8 +15,11 @@ export const Participants = ({
   inputRef,
   itemNameRef,
   onAddParticipantModeChange,
+  isMenuOpen,
+  showMenuToggle = true,
 }) => {
   const [newParticipant, setNewParticipant] = useState(false);
+  const [isParticipantsOpen, setIsParticipantsOpen] = useState(false);
   const [centerUnlockedSection, setCenterUnlockedSection] = useState(false);
   const unlockedSectionRef = useRef(null);
 
@@ -43,6 +46,7 @@ export const Participants = ({
   };
 
   const safeInitialInputs = Array.isArray(initialInputs) ? initialInputs : [];
+  const participantsVisible = isMenuOpen ?? (!initialInputsLocked || isParticipantsOpen);
 
   const newparticipantSubmit = async () => {
     const participantName = String(safeInitialInputs[safeInitialInputs.length - 1] ?? "").trim();
@@ -65,6 +69,7 @@ export const Participants = ({
     setCenterUnlockedSection(false);
     onAddParticipantModeChange?.(false);
     setInitialInputsLocked(true);
+    setIsParticipantsOpen(false);
     const participants = safeInitialInputs.map((name, index) => ({
       name,
       theme: themes[index % themes.length],
@@ -81,6 +86,7 @@ export const Participants = ({
 
   const editParticipant = (index) => {
     setInitialInputsLocked(false);
+    setIsParticipantsOpen(true);
     setNewParticipant(false);
     setCenterUnlockedSection(true);
     onAddParticipantModeChange?.(true);
@@ -125,7 +131,22 @@ export const Participants = ({
   };
 
   return (
-    <div className={`participants${initialInputsLocked ? ' participants-locked' : ''}`}>
+    <div className={`participants${initialInputsLocked ? ' participants-locked' : ''}${initialInputsLocked && !participantsVisible ? ' participants-collapsed' : ''}`}>
+      {showMenuToggle && initialInputsLocked && (
+        <button
+          className="participants-toggle"
+          type="button"
+          title={isParticipantsOpen ? 'Hide participants' : 'Show participants'}
+          aria-label={isParticipantsOpen ? 'Hide participants' : 'Show participants'}
+          aria-expanded={isParticipantsOpen}
+          onClick={() => setIsParticipantsOpen((open) => !open)}
+        >
+          <FaUsers aria-hidden="true" />
+          <span className="participants-count">{safeInitialInputs.length}</span>
+        </button>
+      )}
+      {participantsVisible && (
+      <>
       {newParticipant && (
         <button
           type="button"
@@ -267,6 +288,8 @@ export const Participants = ({
             </div>
           )}
         </div>
+      </>
+      )}
     </div>
   );
 };

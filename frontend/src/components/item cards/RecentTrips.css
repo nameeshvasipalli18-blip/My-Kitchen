@@ -1,5 +1,48 @@
+.recent-trips-menu {
+  position: relative;
+  min-width: 0;
+}
+
+.recent-trips-toggle {
+  display: grid;
+  position: relative;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  place-items: center;
+  border: 1px solid #c8dcb9;
+  border-radius: 6px;
+  background: #fbfff8;
+  color: #427d1e;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.recent-trips-toggle:hover {
+  background: #e6f2de;
+}
+
+.recent-trips-count {
+  display: grid;
+  position: absolute;
+  top: -0.35rem;
+  right: -0.35rem;
+  min-width: 1.15rem;
+  height: 1.15rem;
+  padding: 0 0.2rem;
+  place-items: center;
+  border: 2px solid #fbfff8;
+  border-radius: 50%;
+  background: #a13232;
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
 .recent-trips-container {
   min-width: 0;
+  margin-top: 0.5rem;
   padding: 0.75rem;
   border: 1px solid #c8dcb9;
   border-radius: 6px;
@@ -10,6 +53,79 @@
   margin: 0 0 0.75rem;
   color: #427d1e;
   font-size: 1rem;
+}
+
+.recent-trips-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.recent-trips-search {
+  display: flex;
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.recent-trips-search input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.35rem 0.45rem;
+  border: 1px solid #c8dcb9;
+  border-right: 0;
+  border-radius: 4px 0 0 4px;
+  color: #3f5633;
+  font: inherit;
+  font-size: 0.75rem;
+}
+
+.recent-trips-search button {
+  display: grid;
+  width: 2rem;
+  padding: 0;
+  place-items: center;
+  border: 1px solid #73bb37;
+  border-radius: 0 4px 4px 0;
+  background: #ffffff;
+  color: #427d1e;
+  cursor: pointer;
+}
+
+.recent-trips-search button:hover {
+  background: #e6f2de;
+}
+
+.recent-trips-select select {
+  width: 100%;
+  min-height: 2rem;
+  padding: 0.35rem 0.45rem;
+  border: 1px solid #c8dcb9;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #3f5633;
+  font: inherit;
+  font-size: 0.75rem;
+}
+
+.recent-trips-select {
+  display: grid;
+  gap: 0.2rem;
+  color: #427d1e;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .recent-trips-list {
@@ -83,6 +199,23 @@
   margin: 0;
   color: #65745d;
   font-size: 0.85rem;
+}
+
+.recent-trips-more {
+  justify-self: start;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid #73bb37;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #427d1e;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.recent-trips-more:hover {
+  background: #e6f2de;
 }
 
 .recent-trip-action {

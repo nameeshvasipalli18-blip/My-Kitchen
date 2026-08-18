@@ -7,10 +7,11 @@ import {
   FaCartShopping,
   FaMoneyBillWave,
   FaPen,
-  FaTrash
+  FaTrash,
+  FaXmark
 } from "react-icons/fa6";
 import './ItemCards.css';
-export const ItemCards = ({selectedItemIndex, setSelectedItemIndex, setCurrentItem, itemNameRef, participants, shoppingTrips, setShoppingTrips, activeTrip, activeTripEntering, isSavingTrip, newlyAddedItemIndex, showSavedTrips = true, onEditActiveItem, onDeleteActiveItem, onDeleteActiveTrip, onEditActiveTrip}) => {
+export const ItemCards = ({selectedItemIndex, setSelectedItemIndex, setCurrentItem, itemNameRef, participants, shoppingTrips, setShoppingTrips, activeTrip, activeTripEntering, activeTripClosing, isSavingTrip, newlyAddedItemIndex, showSavedTrips = true, onEditActiveItem, onDeleteActiveItem, onDeleteActiveTrip, onEditActiveTrip, isEditingActiveTrip, onCloseActiveTrip}) => {
   const [hoveredTripId, setHoveredTripId] = useState(null);
   const [activeTripActionsVisible, setActiveTripActionsVisible] = useState(false);
   const trips = Array.isArray(shoppingTrips) ? shoppingTrips : [];
@@ -71,7 +72,7 @@ export const ItemCards = ({selectedItemIndex, setSelectedItemIndex, setCurrentIt
           const activeTripTotal = activeItems.reduce((total, item) => total + (Number(item.price) || 0), 0);
           return (
             <div
-              className={`saved-trip-container active-trip-container${activeTripActionsVisible ? ' active-trip-selected' : ''}${activeTripEntering ? ' active-trip-entering' : ''}${isSavingTrip ? ' active-trip-saving' : ''}`}
+              className={`saved-trip-container active-trip-container${activeTripActionsVisible ? ' active-trip-selected' : ''}${activeTripEntering ? ' active-trip-entering' : ''}${activeTripClosing ? ' active-trip-closing' : ''}${isSavingTrip ? ' active-trip-saving' : ''}`}
               style={{
                 "--primary": activePayer?.theme.primary,
                 "--background": activePayer?.theme.background,
@@ -80,6 +81,22 @@ export const ItemCards = ({selectedItemIndex, setSelectedItemIndex, setCurrentIt
               }}
               onClick={() => setActiveTripActionsVisible((isVisible) => !isVisible)}
             >
+              {isEditingActiveTrip && (
+                <button
+                  className="active-trip-close"
+                  type="button"
+                  disabled={activeTripClosing}
+                  title="Close bill"
+                  aria-label="Close bill"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setActiveTripActionsVisible(false);
+                    onCloseActiveTrip?.();
+                  }}
+                >
+                  <FaXmark aria-hidden="true" />
+                </button>
+              )}
               <div className="trip-header">
                 <div className="trip-date"><FaCalendarDays className="trip-icon" /><p>{activeTrip.date}</p></div>
                 <div className="trip-store"><FaStore className="trip-icon" /><p>{activeTrip.store}</p></div>

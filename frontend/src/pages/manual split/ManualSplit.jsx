@@ -5,6 +5,7 @@ import { ItemCards } from '../../components/item cards/ItemCards.jsx';
 import { RecentTrips } from '../../components/item cards/RecentTrips.jsx';
 import {themes} from '../../components/themes/themes.jsx';
 import api from '../../api.js';
+import { FaReceipt, FaUsers } from 'react-icons/fa6';
 import './ManualSplit.css';
 
 const ManualSplit = () => {
@@ -24,10 +25,13 @@ const ManualSplit = () => {
   const [selectedItemIndex, setSelectedItemIndex] = useState(null);
   const [participants, setParticipants] = useState([]);
   const [addParticipantMode, setAddParticipantMode] = useState(false);
+  const [activeMenu, setActiveMenu] = useState(null);
+  const [closingMenu, setClosingMenu] = useState(null);
   const [tripId, setTripId] = useState(0);
   const [tripStarted, setTripStarted] = useState(false);
   const [tripDefaultsEditable, setTripDefaultsEditable] = useState(true);
   const [activeTripEntering, setActiveTripEntering] = useState(false);
+  const [activeTripClosing, setActiveTripClosing] = useState(false);
   const [isSavingTrip, setIsSavingTrip] = useState(false);
   const [newlySavedTripId, setNewlySavedTripId] = useState(null);
   const [editingTripId, setEditingTripId] = useState(null);
@@ -116,6 +120,7 @@ const ManualSplit = () => {
     setEditingItemIndex(null);
     setTripDefaultsEditable(false);
     setTripStarted(true);
+    animateActiveTripEntry();
   };
 
   const deleteTrip = async (trip) => {
@@ -142,6 +147,47 @@ const ManualSplit = () => {
     setTripDefaultsEditable(true);
     setEditingTripId(null);
     setEditingItemIndex(null);
+  };
+
+  const closeActiveTrip = async () => {
+    if (!Number.isInteger(editingTripId) || activeTripClosing) {
+      return;
+    }
+
+    try {
+      const response = await api.put(`/trip/${editingTripId}`, shoppingTrip);
+      if (response.status !== 200) {
+        return;
+      }
+
+      const tripsResponse = await api.get('/trips');
+      if (tripsResponse.status === 200) {
+        setShoppingTrips(Array.isArray(tripsResponse.data?.trips) ? tripsResponse.data.trips : []);
+      }
+
+      setActiveTripClosing(true);
+      setTimeout(() => {
+        setShoppingTrip({
+          id: tripId,
+          date: new Date().toISOString().split("T")[0],
+          store: 'lidl',
+          participants: [...safeInitialInputs],
+          defaultPayer: safeInitialInputs[0] || '',
+          defaultSplit: {
+            type: 'all',
+            between: [...safeInitialInputs],
+          },
+          items: [],
+        });
+        setTripStarted(false);
+        setTripDefaultsEditable(true);
+        setEditingTripId(null);
+        setEditingItemIndex(null);
+        setActiveTripClosing(false);
+      }, 250);
+    } catch (error) {
+      console.error('Error saving edited bill:', error);
+    }
   };
 
   const deleteActiveItem = (itemIndex) => {
@@ -172,14 +218,74 @@ const ManualSplit = () => {
     setTimeout(() => setActiveTripEntering(false), 300);
   };
 
+  const participantCount = safeInitialInputs.filter((name) => String(name).trim()).length;
+  const participantsPanelVisible = !initialInputsLocked || activeMenu === 'participants' || closingMenu === 'participants';
+  const billsPanelVisible = activeMenu === 'bills' || closingMenu === 'bills';
+  const menuPanelOpen = !initialInputsLocked || activeMenu !== null || closingMenu !== null;
+
+  const toggleParticipantsMenu = () => {
+    if (activeMenu === 'participants' && initialInputsLocked) {
+      setClosingMenu('participants');
+      setTimeout(() => {
+        setActiveMenu(null);
+        setClosingMenu(null);
+      }, 250);
+      return;
+    }
+
+    setClosingMenu(null);
+    setActiveMenu('participants');
+  };
+
+  const toggleBillsMenu = () => {
+    if (activeMenu === 'bills') {
+      setClosingMenu('bills');
+      setTimeout(() => {
+        setActiveMenu(null);
+        setClosingMenu(null);
+      }, 250);
+      return;
+    }
+
+    setClosingMenu(null);
+    setActiveMenu('bills');
+  };
+
 
   return (
     <div className="kitchen-split-container">
       <div className="kitchen-split-header">
         <p>Kitchen Split</p>
       </div>
-      <div className={`kitchen-split-body${initialInputsLocked ? ' participants-ready' : ''}${addParticipantMode ? ' add-participant-mode' : ''}`}>
-        <div className="participants-container">
+      <div className={`kitchen-split-body${menuPanelOpen ? ' menu-panel-open' : ''}${participantsPanelVisible ? ' participants-menu-open' : ''}`}>
+        <nav className="kitchen-split-menu" aria-label="Kitchen Split menu">
+          <button
+            className={`kitchen-menu-button${activeMenu === 'participants' || !initialInputsLocked ? ' kitchen-menu-button-active' : ''}`}
+            type="button"
+            title="Show participants"
+            aria-label="Show participants"
+            aria-pressed={activeMenu === 'participants'}
+            onClick={toggleParticipantsMenu}
+          >
+            <FaUsers aria-hidden="true" />
+            <span className="kitchen-menu-count">{participantCount}</span>
+          </button>
+          <button
+            className={`kitchen-menu-button${activeMenu === 'bills' ? ' kitchen-menu-button-active' : ''}`}
+            type="button"
+            title="Show recent bills"
+            aria-label="Show recent bills"
+            aria-pressed={activeMenu === 'bills'}
+            onClick={toggleBillsMenu}
+          >
+            <FaReceipt aria-hidden="true" />
+            <span className="kitchen-menu-count">{shoppingTrips.length}</span>
+          </button>
+        </nav>
+
+        {menuPanelOpen && (
+        <aside className={`kitchen-split-menu-panel${participantsPanelVisible ? ' participants-menu-panel' : ''}${closingMenu === 'participants' ? ' participants-menu-panel-closing' : ''}${billsPanelVisible ? ' bills-menu-panel' : ''}${closingMenu === 'bills' ? ' bills-menu-panel-closing' : ''}`}>
+          {participantsPanelVisible && (
           <Participants
             splitBetween={splitBetween}
             setSplitBetween={setSplitBetween}
@@ -190,11 +296,30 @@ const ManualSplit = () => {
             setParticipants={setParticipants}
             inputRef={inputRef}
             itemNameRef={itemNameRef}
-            onAddParticipantModeChange={setAddParticipantMode}
+            onAddParticipantModeChange={(mode) => {
+              setAddParticipantMode(mode);
+              if (mode) {
+                setActiveMenu('participants');
+              }
+            }}
+            isMenuOpen
+            showMenuToggle={false}
           />
-        </div>
+          )}
+          {initialInputsLocked && billsPanelVisible && (
+            <RecentTrips
+              participants={participants}
+              shoppingTrips={shoppingTrips}
+              newlySavedTripId={newlySavedTripId}
+              onEditTrip={editTrip}
+              onDeleteTrip={deleteTrip}
+              isMenuOpen
+              showMenuToggle={false}
+            />
+          )}
+        </aside>
+        )}
 
-        {!addParticipantMode && (
         <div className="kitchen-split-content">
           {initialInputsLocked && (
             <TripManager
@@ -238,6 +363,7 @@ const ManualSplit = () => {
               setShoppingTrips={setShoppingTrips}
               activeTrip={tripStarted ? shoppingTrip : null}
               activeTripEntering={activeTripEntering}
+              activeTripClosing={activeTripClosing}
               isSavingTrip={isSavingTrip}
               newlyAddedItemIndex={newlyAddedItemIndex}
               showSavedTrips={false}
@@ -245,15 +371,13 @@ const ManualSplit = () => {
               onDeleteActiveItem={deleteActiveItem}
               onDeleteActiveTrip={deleteActiveTrip}
               onEditActiveTrip={() => setTripDefaultsEditable(true)}
+              isEditingActiveTrip={Number.isInteger(editingTripId)}
+              onCloseActiveTrip={closeActiveTrip}
             />
           )}
           <div className="settlement-results">
           </div>
         </div>
-        )}
-        {initialInputsLocked && !addParticipantMode && (
-          <RecentTrips participants={participants} shoppingTrips={shoppingTrips} newlySavedTripId={newlySavedTripId} onEditTrip={editTrip} onDeleteTrip={deleteTrip} />
-        )}
       </div>
     </div>
   );

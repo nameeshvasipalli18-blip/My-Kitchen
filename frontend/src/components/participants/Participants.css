@@ -9,6 +9,8 @@ html, body {
 .participants {
   position: relative;
   display: flex;
+  width: fit-content;
+  max-width: 100%;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -23,6 +25,49 @@ html, body {
 
 .participants.participants-locked {
   margin-top: 0;
+}
+
+.participants.participants-collapsed {
+  padding: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.participants-toggle {
+  display: grid;
+  position: relative;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
+  place-items: center;
+  border: 1px solid #c8dcb9;
+  border-radius: 6px;
+  background: #fbfff8;
+  color: #427d1e;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.participants-toggle:hover {
+  background: #e6f2de;
+}
+
+.participants-count {
+  display: grid;
+  position: absolute;
+  top: -0.35rem;
+  right: -0.35rem;
+  min-width: 1.15rem;
+  height: 1.15rem;
+  padding: 0 0.2rem;
+  place-items: center;
+  border: 2px solid #fbfff8;
+  border-radius: 50%;
+  background: #a13232;
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .close-add-participant {

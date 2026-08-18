@@ -238,8 +238,30 @@
 }
 
 .active-trip-container {
+  position: relative;
   border-width: 2px;
   transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.active-trip-close {
+  display: grid;
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  z-index: 1;
+  width: 1.8rem;
+  height: 1.8rem;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #a13232;
+  cursor: pointer;
+}
+
+.active-trip-close:hover {
+  background: #fdecec;
 }
 
 @keyframes activeTripScaleIn {
@@ -255,6 +277,22 @@
 
 .active-trip-container.active-trip-entering {
   animation: activeTripScaleIn 0.3s ease-out;
+}
+
+@keyframes activeTripScaleOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+}
+
+.active-trip-container.active-trip-closing {
+  animation: activeTripScaleOut 0.25s ease-in forwards;
+  pointer-events: none;
 }
 
 .active-trip-container.active-trip-saving {

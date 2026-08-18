@@ -74,57 +74,105 @@ export const TripManager = ({initialInputs, itemNameRef, shoppingTrip, setShoppi
       setEditingItemIndex(null);
     }
 
+    const handleSaveBill = async () => {
+      const savedTrip = await submitTrip();
+      if (!savedTrip) {
+        setSettlementResults('Unable to save this trip. Please try again.');
+        return;
+      }
+
+      setIsSavingTrip(true);
+      await new Promise((resolve) => setTimeout(resolve, 250));
+      setTripCount((prev) => prev + 1);
+      await getTrips();
+      onTripSaved?.(savedTrip.tripId);
+      setCustomSplitParticipants(false);
+      setShoppingTrip({
+        id: tripCount + 1,
+        date: new Date().toISOString().split("T")[0],
+        store: 'lidl',
+        participants: initialInputs.length > 0 ? [...initialInputs] : [],
+        defaultPayer: initialInputs.length > 0 ? initialInputs[0] : '',
+        defaultSplit: {
+          type: 'all',
+          between: initialInputs ? [...initialInputs] : [],
+        },
+        items: [],
+      });
+      setStartTripEntering(true);
+      setTripStarted(false);
+      setTripDefaultsEditable(true);
+      setEditingTripId(null);
+      setEditingItemIndex(null);
+      setSettlementResults(null);
+      setIsSavingTrip(false);
+      setTimeout(() => setStartTripEntering(false), 250);
+    };
+
   return (
     <div>
       {tripCount > 0 && (
         <div className="shopping-trip-container">
           <div className="shopping-defaults">
-            <div>
-            <input type="date" 
-            value={shoppingTrip.date}
-            disabled={tripStarted && !tripDefaultsEditable}
-            onChange={(e) => {
-              setShoppingTrip((prev) => ({...prev, date: e.target.value}));
-            }}            
-            />
-            <select
-            value={shoppingTrip.store}
-            disabled={tripStarted && !tripDefaultsEditable}
-            onChange={(e) => {
-              setShoppingTrip((prev) => ({...prev, store: e.target.value}));
-            }}
-            >
-              <option value="">Select Store</option>
-              <option value="lidl">lidl</option>
-              <option value="Amma">Amma</option>
-              <option value="Tesco">Tesco</option>
-              <option value="Sainsbury's">Sainsbury's</option>
-              <option value="Aldi">Aldi</option>
-              <option value="Morrisons">Morrisons</option>
-              <option value="Waitrose">Waitrose</option>
-              <option value="Iceland">Iceland</option>
-              <option value="Asda">Asda</option>
-              <option value="Co-op">Co-op</option>
-              <option value="Marks & Spencer">Marks & Spencer</option>  
-            </select>
-            <select 
-            disabled={tripStarted && !tripDefaultsEditable}
-            onChange={(e) => {
-              const value = e.target.value;
-              if (value === "custom") {
-                setCustomSplitParticipants(true);
-              } else {
-                setCustomSplitParticipants(false);
-                setShoppingTrip((prev) => ({...prev, participants: value === "all" ? [...initialInputs] : []}));
-              } 
-            }}
-            value={customSplitParticipants ? "custom" : "all"}
-            >
-              <option value="">Select Participants</option>
-              <option value="all">All</option>
-              <option value="custom">Custom</option>
-            </select>
-            {customSplitParticipants && (
+            <div className="shopping-default-fields">
+              <label className="shopping-default-field">
+                <span>Date</span>
+                <input
+                  type="date"
+                  value={shoppingTrip.date}
+                  disabled={tripStarted && !tripDefaultsEditable}
+                  onChange={(e) => {
+                    setShoppingTrip((prev) => ({...prev, date: e.target.value}));
+                  }}
+                />
+              </label>
+              <label className="shopping-default-field">
+                <span>Store</span>
+                <select
+                  value={shoppingTrip.store}
+                  disabled={tripStarted && !tripDefaultsEditable}
+                  onChange={(e) => {
+                    setShoppingTrip((prev) => ({...prev, store: e.target.value}));
+                  }}
+                >
+                  <option value="">Select Store</option>
+                  <option value="lidl">lidl</option>
+                  <option value="Amma">Amma</option>
+                  <option value="Tesco">Tesco</option>
+                  <option value="Sainsbury's">Sainsbury's</option>
+                  <option value="Electricity">Electricity</option>
+                  <option value="Aldi">Aldi</option>
+                  <option value="Morrisons">Morrisons</option>
+                  <option value="Waitrose">Waitrose</option>
+                  <option value="Iceland">Iceland</option>
+                  <option value="Asda">Asda</option>
+                  <option value="Co-op">Co-op</option>
+                  <option value="Marks & Spencer">Marks & Spencer</option>
+                </select>
+              </label>
+              <label className="shopping-default-field">
+                <span>Participants</span>
+                <select
+                  disabled={tripStarted && !tripDefaultsEditable}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === "custom") {
+                      setCustomSplitParticipants(true);
+                    } else {
+                      setCustomSplitParticipants(false);
+                      setShoppingTrip((prev) => ({...prev, participants: value === "all" ? [...initialInputs] : []}));
+                    }
+                  }}
+                  value={customSplitParticipants ? "custom" : "all"}
+                >
+                  <option value="">Select Participants</option>
+                  <option value="all">All</option>
+                  <option value="custom">Custom</option>
+                </select>
+              </label>
+              {customSplitParticipants && (
+              <label className="shopping-default-field">
+                <span>Select participants</span>
               <select
                 multiple
                 className="item-split-between-select"
@@ -139,20 +187,24 @@ export const TripManager = ({initialInputs, itemNameRef, shoppingTrip, setShoppi
                   <option key={idx} value={person}>{person}</option>
                 ))}
               </select>
-            )}
-            <select
-              className="item-paid-by-select"
-              value={shoppingTrip.defaultPayer}
-              disabled={tripStarted && !tripDefaultsEditable}
-              onChange={(e) => {
-                setShoppingTrip((prev) => ({...prev, defaultPayer: e.target.value}));
-              }}
-            >
-              <option value="">Select Default Payer</option>
-              {shoppingTrip.participants.map((person, idx) => (
-                <option key={idx} value={person}>{person}</option>
-              ))}
-            </select>
+              </label>
+              )}
+              <label className="shopping-default-field">
+                <span>Paid by</span>
+                <select
+                  className="item-paid-by-select"
+                  value={shoppingTrip.defaultPayer}
+                  disabled={tripStarted && !tripDefaultsEditable}
+                  onChange={(e) => {
+                    setShoppingTrip((prev) => ({...prev, defaultPayer: e.target.value}));
+                  }}
+                >
+                  <option value="">Select Default Payer</option>
+                  {shoppingTrip.participants.map((person, idx) => (
+                    <option key={idx} value={person}>{person}</option>
+                  ))}
+                </select>
+              </label>
             </div>
             <div className="trip-action-slot">
             {!tripStarted && (
@@ -175,50 +227,8 @@ export const TripManager = ({initialInputs, itemNameRef, shoppingTrip, setShoppi
                   setTimeout(() => setItemInputsEntering(false), 300);
                 }
               }}
-              >Start shopping trip</button>
+              >Start Bill</button>
               )}
-            {tripCount > 0 && tripStarted && (
-            <button
-            className={`lock-button${isSavingTrip ? ' save-trip-exiting' : ''}`}
-            disabled={isSavingTrip}
-            onClick={async () => {
-              const savedTrip = await submitTrip();
-              if (!savedTrip) {
-                setSettlementResults('Unable to save this trip. Please try again.');
-                return;
-              }
-
-              setIsSavingTrip(true);
-              await new Promise((resolve) => setTimeout(resolve, 250));
-              setTripCount((prev) => prev + 1);
-              await getTrips();
-              onTripSaved?.(savedTrip.tripId);
-              setCustomSplitParticipants(false);
-              setShoppingTrip({
-                id: tripCount + 1,
-                date: new Date().toISOString().split("T")[0],
-                store: 'lidl',
-                participants: initialInputs.length > 0 ? [...initialInputs] : [],
-                defaultPayer: initialInputs.length > 0 ? initialInputs[0] : '',
-                defaultSplit: {
-                  type: 'all',
-                  between: initialInputs ? [...initialInputs] : [],
-                },
-                items: [],
-              });
-              setStartTripEntering(true);
-              setTripStarted(false);
-              setTripDefaultsEditable(true);
-              setEditingTripId(null);
-              setEditingItemIndex(null);
-              setSettlementResults(null);
-              setIsSavingTrip(false);
-              setTimeout(() => setStartTripEntering(false), 250);
-            }}
-            >
-            {"Save Trip"}
-            </button>
-            )}
             </div>
           </div>
           <div className={`item-manager-transition${isSavingTrip ? ' item-manager-exiting' : ''}${itemInputsEntering ? ' item-manager-entering' : ''}`}>
@@ -235,6 +245,17 @@ export const TripManager = ({initialInputs, itemNameRef, shoppingTrip, setShoppi
               initialItem={editingItemIndex !== null ? shoppingTrip.items[editingItemIndex] : null}
             />
           </div>
+          {tripCount > 0 && tripStarted && (
+            <div className="save-bill-action">
+              <button
+                className={`lock-button${isSavingTrip ? ' save-trip-exiting' : ''}`}
+                disabled={isSavingTrip}
+                onClick={handleSaveBill}
+              >
+                Save Bill
+              </button>
+            </div>
+          )}
         </div>
       )}
       {settlementResults && (
