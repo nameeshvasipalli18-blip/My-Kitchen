@@ -31,15 +31,15 @@ const Register = () => {
         <form onSubmit={handleSubmit}>
           <label>
             Email
-            <input value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} />
+            <input type="email" autoComplete="email" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} />
           </label>
           <label>
             Username
-            <input value={form.username} onChange={(event) => setForm((current) => ({ ...current, username: event.target.value }))} />
+            <input autoComplete="username" value={form.username} onChange={(event) => setForm((current) => ({ ...current, username: event.target.value }))} />
           </label>
           <label>
             Password
-            <input type="password" value={form.password} onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))} />
+            <input type="password" autoComplete="new-password" value={form.password} onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))} />
           </label>
           {error && <p className="auth-error">{error}</p>}
           <button type="submit">Create account</button>

@@ -186,8 +186,8 @@ export const ItemCards = ({
                     setCurrentItem({ ...item, splitBetween: Array.isArray(item.splitBetween) ? [...item.splitBetween] : [] });
                     itemNameRef.current?.focus?.();
                   }}>
-                    <a className="saved-item-name">{item.name}</a>
-                    <a className="saved-item-price">{`£${item.price}`}</a>
+                    <span className="saved-item-name">{item.name}</span>
+                    <span className="saved-item-price">{`£${item.price}`}</span>
                   </div>
                 ))}
               </div>

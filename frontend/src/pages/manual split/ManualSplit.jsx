@@ -48,8 +48,11 @@ const ManualSplit = () => {
 
   const [shoppingTrip, setShoppingTrip] = useState(createDefaultTrip([]));
 
-  const refreshKitchenMembers = useCallback(async () => {
+  const refreshKitchenMembers = useCallback(async (isActive = () => true) => {
     const response = await api.get(`/kitchens/${kitchenId}`);
+    if (!isActive()) {
+      return;
+    }
     const kitchen = response.data;
     const names = kitchen.members.map((member) => member.username);
     setKitchenName(kitchen.name);
@@ -64,8 +67,11 @@ const ManualSplit = () => {
     });
   }, [createDefaultTrip, kitchenId]);
 
-  const loadBills = useCallback(async () => {
+  const loadBills = useCallback(async (isActive = () => true) => {
     const response = await api.get(`/kitchens/${kitchenId}/bills`);
+    if (!isActive()) {
+      return;
+    }
     setShoppingTrips(Array.isArray(response.data?.trips) ? response.data.trips : []);
   }, [kitchenId]);
 
@@ -73,8 +79,8 @@ const ManualSplit = () => {
     let active = true;
     (async () => {
       try {
-        await refreshKitchenMembers();
-        await loadBills();
+        await refreshKitchenMembers(() => active);
+        await loadBills(() => active);
       } catch {
         if (active) {
           navigate('/dashboard');
@@ -160,10 +166,10 @@ const ManualSplit = () => {
     setTimeout(() => setNewlyAddedItemIndex(null), 350);
   };
 
-  const highlightSavedTrip = (savedId) => {
+  const highlightSavedTrip = async (savedId) => {
     setNewlySavedTripId(savedId);
     setTimeout(() => setNewlySavedTripId(null), 450);
-    loadBills();
+    await loadBills();
   };
 
   const animateActiveTripEntry = () => {

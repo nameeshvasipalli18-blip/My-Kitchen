@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { useCallback } from 'react';
 import api, { getStoredToken, persistStoredToken } from '../api.js';
 
 const AuthContext = createContext(null);
@@ -8,7 +9,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadUser = async () => {
+  const loadUser = useCallback(async () => {
     const token = getStoredToken();
     if (!token) {
       setUser(null);
@@ -27,7 +28,7 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -36,21 +37,21 @@ export const AuthProvider = ({ children }) => {
     return () => clearTimeout(timer);
   }, []);
 
-  const login = async (identifier, password) => {
+  const login = useCallback(async (identifier, password) => {
     const response = await api.post('/auth/login', { identifier, password });
     persistStoredToken(response.data.token);
     setUser(response.data.user);
     return response.data.user;
-  };
+  }, []);
 
-  const register = async (payload) => {
+  const register = useCallback(async (payload) => {
     const response = await api.post('/auth/register', payload);
     persistStoredToken(response.data.token);
     setUser(response.data.user);
     return response.data.user;
-  };
+  }, []);
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     try {
       if (getStoredToken()) {
         await api.post('/auth/logout');
@@ -61,9 +62,9 @@ export const AuthProvider = ({ children }) => {
       persistStoredToken(null);
       setUser(null);
     }
-  };
+  }, []);
 
-  const value = useMemo(() => ({ user, isLoading, login, register, logout, loadUser }), [user, isLoading]);
+  const value = useMemo(() => ({ user, isLoading, login, register, logout, loadUser }), [user, isLoading, login, register, logout, loadUser]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

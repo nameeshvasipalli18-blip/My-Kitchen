@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
-
 from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlmodel import Session, or_, select
 
@@ -15,7 +13,7 @@ from app.core.security import (
     normalize_username,
     verify_password,
 )
-from app.models import AuthTokenTable, UserTable
+from app.models import AuthTokenTable, UserTable, utc_now
 from app.schemas.auth import AuthResponse, LoginRequest, RegisterRequest, UserResponse
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -79,7 +77,7 @@ def logout(
     token_hash = hash_token(authorization.removeprefix("Bearer ").strip())
     auth_token = session.exec(select(AuthTokenTable).where(AuthTokenTable.token_hash == token_hash)).first()
     if auth_token and auth_token.revoked_at is None:
-        auth_token.revoked_at = datetime.now(timezone.utc)
+        auth_token.revoked_at = utc_now()
         session.add(auth_token)
         session.commit()
     return {"message": "Logged out successfully"}

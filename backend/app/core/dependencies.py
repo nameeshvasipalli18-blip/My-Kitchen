@@ -14,6 +14,12 @@ def _unauthorized() -> HTTPException:
     return HTTPException(status_code=401, detail="Authentication required")
 
 
+def _ensure_utc(value: datetime) -> datetime:
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)
+
+
 def get_current_user(
     authorization: str | None = Header(default=None),
     session: Session = Depends(get_session),
@@ -27,7 +33,7 @@ def get_current_user(
 
     token_hash = hash_token(token)
     auth_token = session.exec(select(AuthTokenTable).where(AuthTokenTable.token_hash == token_hash)).first()
-    if not auth_token or auth_token.revoked_at is not None or auth_token.expires_at <= datetime.now(timezone.utc):
+    if not auth_token or auth_token.revoked_at is not None or _ensure_utc(auth_token.expires_at) <= datetime.now(timezone.utc):
         raise _unauthorized()
 
     user = session.get(UserTable, auth_token.user_id)

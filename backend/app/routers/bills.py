@@ -24,7 +24,15 @@ router = APIRouter(prefix="/kitchens", tags=["bills"])
 
 def _membership_map(session: Session, kitchen_id: int) -> dict[str, KitchenMembershipTable]:
     memberships = session.exec(select(KitchenMembershipTable).where(KitchenMembershipTable.kitchen_id == kitchen_id)).all()
-    users = {user.id: user for user in session.exec(select(UserTable)).all()}
+    user_ids = [membership.user_id for membership in memberships]
+    users = {
+        user.id: user
+        for user in (
+            session.exec(select(UserTable).where(UserTable.id.in_(user_ids))).all()
+            if user_ids
+            else []
+        )
+    }
     return {
         users[membership.user_id].username: membership
         for membership in memberships
