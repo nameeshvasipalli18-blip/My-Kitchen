@@ -1,0 +1,134 @@
+.recent-trips-container {
+  min-width: 0;
+  padding: 0.75rem;
+  border: 1px solid #c8dcb9;
+  border-radius: 6px;
+  background: #fbfff8;
+}
+
+.recent-trips-container h2 {
+  margin: 0 0 0.75rem;
+  color: #427d1e;
+  font-size: 1rem;
+}
+
+.recent-trips-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.5rem;
+}
+
+.recent-trips-header,
+.recent-trip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) 0 0;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.recent-trips-header {
+  color: #427d1e;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.recent-trip {
+  box-sizing: border-box;
+  padding: 0.6rem;
+  border: 1px solid #dce8d4;
+  border-radius: 5px;
+  background: #ffffff;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, grid-template-columns 0.2s ease;
+}
+
+@keyframes recentTripScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.recent-trip.recent-trip-new {
+  animation: recentTripScaleIn 0.3s ease-out;
+}
+
+.recent-trip span {
+  min-width: 0;
+  color: #3f5633;
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+  transition: font-size 0.2s ease;
+}
+
+.recent-trip-total {
+  color: #427d1e;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.recent-trip-payer {
+  padding: 0.25rem 0.4rem;
+  border-radius: 4px;
+  background: var(--payer-color, #73bb37);
+  color: #ffffff !important;
+  text-align: center;
+}
+
+.recent-trips-empty {
+  margin: 0;
+  color: #65745d;
+  font-size: 0.85rem;
+}
+
+.recent-trip-action {
+  display: grid;
+  width: 100%;
+  height: 2.25rem;
+  min-width: 0;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #427d1e;
+  cursor: pointer;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transform: translateX(0.35rem);
+  visibility: hidden;
+  transition: opacity 0.15s ease, transform 0.2s ease, visibility 0.2s ease;
+}
+
+.recent-trip:hover .recent-trip-action {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+  visibility: visible;
+}
+
+.recent-trip:hover {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) 2.25rem 2.25rem;
+  background: #f8fcf5;
+  box-shadow: 0 2px 6px rgba(66, 125, 30, 0.12);
+}
+
+.recent-trip:hover span {
+  font-size: 0.65rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recent-trip-action:hover {
+  background: #e6f2de;
+}
+
+.recent-trip-action-delete {
+  color: #a13232;
+}

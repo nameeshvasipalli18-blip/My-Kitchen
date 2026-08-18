@@ -1,6 +1,6 @@
 import {useState, useRef} from "react";
 
-export const ItemManager = ({initialInputs, saveDefaults, defaultPayer, defaultSplitType, tripParticipants, itemNameRef, handleItem}) => {
+export const ItemManager = ({initialInputs, saveDefaults, defaultPayer, defaultSplitType, tripParticipants, itemNameRef, handleItem, editingItemIndex, initialItem}) => {
     const newItem = {
         name: "",
         price: "",
@@ -14,7 +14,10 @@ export const ItemManager = ({initialInputs, saveDefaults, defaultPayer, defaultS
     const itemSplitBetweenRef = useRef(null);
     const [overrideDefaultOptions, setOverrideDefaultOptions] = useState(false);
     const [selectedItemIndex, setSelectedItemIndex] = useState(null);
-    const [currentItem, setCurrentItem] = useState(newItem);
+    const [currentItem, setCurrentItem] = useState(initialItem ? {
+        ...initialItem,
+        splitBetween: Array.isArray(initialItem.splitBetween) ? [...initialItem.splitBetween] : [],
+    } : newItem);
 
     const validateItem = (item) => {
       const name = item?.name?.trim();
@@ -183,14 +186,14 @@ export const ItemManager = ({initialInputs, saveDefaults, defaultPayer, defaultS
                 <button
                 className="lock-button"
                 onClick={() => {
-                    handleItem(currentItem);
+                    handleItem(currentItem, editingItemIndex);
                     setSelectedItemIndex(null);
                     setCurrentItem(newItem);
                     setOverrideDefaultOptions(false);
                     itemNameRef.current?.focus();
                 }}
                 >
-                    {selectedItemIndex !== null ? "Update Item" : "Add Item"}
+                    {editingItemIndex !== null ? "Update Item" : "Add Item"}
                 </button>
                 {/* {savedItems.length > 0 && (
                 <button

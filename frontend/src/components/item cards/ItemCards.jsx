@@ -2,14 +2,17 @@ import {useState} from "react";
 import api from '../../api.js';
 import {
   FaStore,
-  FaUserCheck,
   FaCalendarDays,
   FaUsers,
-  FaCartShopping
+  FaCartShopping,
+  FaMoneyBillWave,
+  FaPen,
+  FaTrash
 } from "react-icons/fa6";
 import './ItemCards.css';
-export const ItemCards = ({selectedItemIndex, setSelectedItemIndex, setCurrentItem, itemNameRef, participants, shoppingTrips, setShoppingTrips}) => {
+export const ItemCards = ({selectedItemIndex, setSelectedItemIndex, setCurrentItem, itemNameRef, participants, shoppingTrips, setShoppingTrips, activeTrip, activeTripEntering, isSavingTrip, newlyAddedItemIndex, showSavedTrips = true, onEditActiveItem, onDeleteActiveItem, onDeleteActiveTrip, onEditActiveTrip}) => {
   const [hoveredTripId, setHoveredTripId] = useState(null);
+  const [activeTripActionsVisible, setActiveTripActionsVisible] = useState(false);
   const trips = Array.isArray(shoppingTrips) ? shoppingTrips : [];
 
   const resolveTripId = (trip) => {
@@ -61,9 +64,104 @@ export const ItemCards = ({selectedItemIndex, setSelectedItemIndex, setCurrentIt
   };
     
     return (
-      <div className="saved-trips-container">
-        {trips.map((trip, index) => {
-          const participant = participants.find(p => p.name === trip.defaultPayer);
+      <div className={`saved-trips-container${activeTrip ? ' active-trip-list' : ''}`}>
+        {activeTrip && (() => {
+          const activePayer = participants.find((participant) => participant.name === activeTrip.defaultPayer);
+          const activeItems = Array.isArray(activeTrip.items) ? activeTrip.items : [];
+          const activeTripTotal = activeItems.reduce((total, item) => total + (Number(item.price) || 0), 0);
+          return (
+            <div
+              className={`saved-trip-container active-trip-container${activeTripActionsVisible ? ' active-trip-selected' : ''}${activeTripEntering ? ' active-trip-entering' : ''}${isSavingTrip ? ' active-trip-saving' : ''}`}
+              style={{
+                "--primary": activePayer?.theme.primary,
+                "--background": activePayer?.theme.background,
+                "--border": activePayer?.theme.border,
+                "--shadow": activePayer?.theme.shadow,
+              }}
+              onClick={() => setActiveTripActionsVisible((isVisible) => !isVisible)}
+            >
+              <div className="trip-header">
+                <div className="trip-date"><FaCalendarDays className="trip-icon" /><p>{activeTrip.date}</p></div>
+                <div className="trip-store"><FaStore className="trip-icon" /><p>{activeTrip.store}</p></div>
+                <div className="trip-payer" title={`Paid by ${activeTrip.defaultPayer}`}>
+                  <FaMoneyBillWave className="trip-icon" aria-hidden="true" />
+                  <div className="saved-participant" style={{ "--participant-color": activePayer?.theme.primary }}>
+                    {activeTrip.defaultPayer.charAt(0).toUpperCase()}
+                  </div>
+                </div>
+              </div>
+              <p className="active-trip-status">Total: {`£${activeTripTotal.toFixed(2)}`}</p>
+              <div className="saved-trip-content">
+                <div className="saved-trip-items">
+                  <span className="active-trip-cart">
+                    <FaCartShopping className="trip-icon" />
+                    <span className="active-trip-item-count">{activeItems.length}</span>
+                  </span>
+                  {activeItems.length === 0 ? (
+                    <span className="empty-trip-items">No items added yet</span>
+                  ) : activeItems.map((item, itemIndex) => (
+                    <div className={`saved-item-content${newlyAddedItemIndex === itemIndex ? ' saved-item-new' : ''}`} key={`${item.name}-${itemIndex}`}>
+                      <span className="saved-item-name">{item.name}</span>
+                      <span className="saved-item-price">{`£${item.price}`}</span>
+                      <div className="saved-item-actions">
+                        <button type="button" title={`Edit ${item.name}`} aria-label={`Edit ${item.name}`} onClick={() => onEditActiveItem?.(itemIndex)}>
+                          <FaPen aria-hidden="true" />
+                        </button>
+                        <button type="button" title={`Delete ${item.name}`} aria-label={`Delete ${item.name}`} onClick={() => onDeleteActiveItem?.(itemIndex)}>
+                          <FaTrash aria-hidden="true" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="saved-trip-participants">
+                <FaUsers className="trip-icon" />
+                {activeTrip.participants.map((participantName) => (
+                  <div
+                    key={participantName}
+                    className="saved-participant"
+                    title={participantName}
+                    aria-label={participantName}
+                    style={{ "--participant-color": participants.find((participant) => participant.name === participantName)?.theme.primary }}
+                  >
+                    {participantName.charAt(0).toUpperCase()}
+                  </div>
+                ))}
+              </div>
+              <div className="active-trip-actions">
+                <button
+                  type="button"
+                  title="Edit trip defaults"
+                  aria-label="Edit trip defaults"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setActiveTripActionsVisible(false);
+                    onEditActiveTrip?.();
+                  }}
+                >
+                  <FaPen aria-hidden="true" />
+                  <span>Edit</span>
+                </button>
+                <button
+                  type="button"
+                  title="Delete active trip"
+                  aria-label="Delete active trip"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setActiveTripActionsVisible(false);
+                    onDeleteActiveTrip?.();
+                  }}
+                >
+                  <FaTrash aria-hidden="true" />
+                  <span>Delete</span>
+                </button>
+              </div>
+            </div>
+          );
+        })()}
+        {showSavedTrips && trips.map((trip, index) => {
+          const participant = participants.find((person) => person.name === trip.defaultPayer);
           const tripParticipants = Array.isArray(trip.participants) ? trip.participants : [];
           const tripItems = Array.isArray(trip.items) ? trip.items : [];
           const tripDbId = resolveTripId(trip);
@@ -95,6 +193,12 @@ export const ItemCards = ({selectedItemIndex, setSelectedItemIndex, setCurrentIt
                 <FaStore className="trip-icon" />
                 <p>{trip.store}</p>
               </div>
+              <div className="trip-payer" title={`Paid by ${trip.defaultPayer}`}>
+                <FaMoneyBillWave className="trip-icon" aria-hidden="true" />
+                <div className="saved-participant" style={{ "--participant-color": participant?.theme.primary }}>
+                  {trip.defaultPayer.charAt(0).toUpperCase()}
+                </div>
+              </div>
             </div>
             <div className="saved-trip-content">
               <div className="saved-trip-items">
@@ -123,9 +227,14 @@ export const ItemCards = ({selectedItemIndex, setSelectedItemIndex, setCurrentIt
               <div className="saved-trip-participants">
                 <FaUsers className="trip-icon" />
                 {tripParticipants.map((participant, participantIndex) => (
-                  <div key={participantIndex} className="saved-participant">
-                    <FaUserCheck className="participant-icon" />
-                    <p>{participant.name}</p>
+                  <div
+                    key={participantIndex}
+                    className="saved-participant"
+                    title={typeof participant === 'string' ? participant : participant.name}
+                    aria-label={typeof participant === 'string' ? participant : participant.name}
+                    style={{ "--participant-color": participants.find((person) => person.name === (typeof participant === 'string' ? participant : participant.name))?.theme.primary }}
+                  >
+                    {(typeof participant === 'string' ? participant : participant.name).charAt(0).toUpperCase()}
                   </div>
                 ))}
               </div>

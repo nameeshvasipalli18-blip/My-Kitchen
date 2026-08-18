@@ -34,7 +34,7 @@ html, body {
 }
 
 .kitchen-split-body.participants-ready {
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) minmax(13rem, 18rem);
   justify-items: stretch;
 }
 

@@ -128,6 +128,34 @@ def create_trip(trip: Trip):
         return trip_table.id
 
 
+def update_trip(trip_id: int, trip: Trip):
+    with Session(engine) as session:
+        trip_table = session.get(TripTable, trip_id)
+        if not trip_table:
+            raise HTTPException(status_code=404, detail="Trip not found")
+
+        trip_table.clientTripId = trip.id
+        trip_table.date = trip.date
+        trip_table.store = trip.store
+        trip_table.participants = ",".join(trip.participants)
+        trip_table.defaultPayer = trip.defaultPayer
+        trip_table.defaultSplitType = trip.defaultSplit.type if trip.defaultSplit else None
+        trip_table.defaultSplitBetween = ",".join(trip.defaultSplit.between) if trip.defaultSplit and trip.defaultSplit.between else None
+
+        session.query(ItemTable).filter(ItemTable.trip_id == trip_id).delete()
+        for item in trip.items:
+            session.add(ItemTable(
+                trip_id=trip_id,
+                name=item.name,
+                price=item.price,
+                paidBy=item.paidBy,
+                splitType=item.splitType,
+                splitBetween=",".join(item.splitBetween) if item.splitBetween else None,
+            ))
+        session.commit()
+        return trip_table.id
+
+
 def to_cents(amount: float) -> int:
     decimal_amount = Decimal(str(amount)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
     return int(decimal_amount * 100)
@@ -342,6 +370,11 @@ async def split(data: Split):
 async def process_trip(trip: Trip):
     persisted_trip_id = create_trip(trip)
     return JSONResponse(content={"message": "Trip processed successfully", "tripId": persisted_trip_id, "trip": trip.model_dump()})
+
+@app.put("/trip/{trip_id}")
+async def update_saved_trip(trip_id: int, trip: Trip):
+    persisted_trip_id = update_trip(trip_id, trip)
+    return JSONResponse(content={"message": "Trip updated successfully", "tripId": persisted_trip_id, "trip": trip.model_dump()})
 
 @app.get("/trips")
 async def get_trips():

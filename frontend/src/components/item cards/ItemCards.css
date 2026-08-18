@@ -9,6 +9,10 @@
   transition: all 0.2s ease-in-out;
 }
 
+.saved-trips-container.active-trip-list {
+  justify-content: center;
+}
+
 .saved-trip-container {
     display: flex;
     flex-direction: column;
@@ -26,6 +30,10 @@
     border: 1px solid var(--border, #ccc);
     box-shadow: 0 2px 4px var(--shadow, rgba(0,0,0,.1));
     transition: all 0.2s ease-in-out;
+}
+
+.trip-icon {
+  padding: 0.3rem;
 }
 
 .selected-trip {
@@ -62,7 +70,22 @@
   border-radius: 5px;
   align-items: center;
   justify-content: space-between;
-  background-color: var(--background, #fffdfd);
+  background-color: #ffffff;
+}
+
+@keyframes savedItemScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.saved-item-content.saved-item-new {
+  animation: savedItemScaleIn 0.3s ease-out;
 }
 
 .saved-item-name {
@@ -82,6 +105,38 @@
   font-size: 0.9rem;
   color: var(--primary, #73bb37);
   font-weight: bold;
+}
+
+.saved-item-actions {
+  display: none;
+  gap: 0.25rem;
+  margin-top: 0.15rem;
+}
+
+.saved-item-content:hover .saved-item-actions,
+.saved-item-content:focus-within .saved-item-actions {
+  display: flex;
+}
+
+.saved-item-actions button {
+  display: grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--primary, #73bb37);
+  cursor: pointer;
+}
+
+.saved-item-actions button:hover {
+  background: #e6f2de;
+}
+
+.saved-item-actions button:last-child {
+  color: #a13232;
 }
 
 .saved-item-paid-by {
@@ -120,14 +175,32 @@
   align-items: center;
 }
 
+.trip-payer {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.saved-participant {
+  display: grid;
+  width: 1.8rem;
+  height: 1.8rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--participant-color, #73bb37);
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
 
 .trip-header {
   display: grid;
-  grid-template-columns: repeat(2, auto);
+  grid-template-columns: repeat(3, auto);
   grid-template-rows: auto;
   gap: 10px;
   justify-content: space-between;
-  align-items: center;
+  align-items: stretch;
 }
 
 .saved-trip-participants {
@@ -138,7 +211,7 @@
   align-items: center;
 }
 
-.trip-date, .trip-store {
+.trip-date, .trip-store, .trip-payer {
   grid-column: span 1;
   display: flex;
   gap: 5px;
@@ -152,9 +225,109 @@
 .saved-trip-items {
   display: flex;
   flex-direction: row;
-  flex-wrap: nowrap;
-  width: auto;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 100%;
   gap: 5px;
   align-items: center;
   justify-content: center;
+}
+
+.saved-trip-items > .trip-icon {
+  margin-right: 0.3rem;
+}
+
+.active-trip-container {
+  border-width: 2px;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+@keyframes activeTripScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.82);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.active-trip-container.active-trip-entering {
+  animation: activeTripScaleIn 0.3s ease-out;
+}
+
+.active-trip-container.active-trip-saving {
+  opacity: 0;
+  transform: scale(0.82);
+}
+
+.active-trip-actions {
+  display: none;
+  gap: 0.3rem;
+}
+
+.active-trip-container.active-trip-selected .active-trip-actions {
+  display: flex;
+}
+
+.active-trip-actions button {
+  display: flex;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  padding: 0 0.55rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--primary, #73bb37);
+  cursor: pointer;
+}
+
+.active-trip-actions button:hover {
+  background: #e6f2de;
+}
+
+.active-trip-actions button:last-child {
+  color: #a13232;
+}
+
+.active-trip-actions button:last-child:hover {
+  background: #fdecec;
+}
+
+.active-trip-status {
+  margin: 0;
+  font-weight: bold;
+  color: var(--primary, #73bb37);
+}
+
+.active-trip-cart {
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin-right: 0.5rem;
+}
+
+.active-trip-item-count {
+  position: absolute;
+  top: -0.55rem;
+  right: -0.65rem;
+  display: grid;
+  width: 1.15rem;
+  height: 1.15rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--primary, #73bb37);
+  color: #ffffff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.empty-trip-items {
+  color: var(--primary, #73bb37);
+  font-style: italic;
 }

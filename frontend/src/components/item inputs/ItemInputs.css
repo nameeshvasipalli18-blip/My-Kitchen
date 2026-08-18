@@ -108,6 +108,70 @@
   transition: background-color 0.2s ease, transform 0.1s ease;
 }
 
+.trip-action-slot {
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes saveTripExit {
+  to {
+    opacity: 0;
+    transform: translateY(2rem);
+  }
+}
+
+@keyframes startTripEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-2rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.shopping-defaults button.save-trip-exiting {
+  animation: saveTripExit 0.25s ease-in forwards;
+}
+
+.shopping-defaults button.start-trip-exiting {
+  animation: saveTripExit 0.25s ease-in forwards;
+}
+
+.shopping-defaults button.start-trip-entering {
+  animation: startTripEnter 0.25s ease-out;
+}
+
+.item-manager-transition {
+  max-height: 20rem;
+  overflow: hidden;
+  opacity: 1;
+  transform: translateY(0);
+  transition: max-height 0.25s ease, opacity 0.2s ease, transform 0.25s ease;
+}
+
+.item-manager-transition.item-manager-exiting {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(1rem);
+}
+
+@keyframes itemInputsEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-1.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.item-manager-transition.item-manager-entering {
+  animation: itemInputsEnter 0.3s ease-out;
+}
+
 .default-options {
   display: flex;
   flex-direction: row;

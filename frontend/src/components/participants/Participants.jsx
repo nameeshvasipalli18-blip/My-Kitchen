@@ -1,7 +1,7 @@
 import { themes } from '../themes/themes';
 import api from '../../api.js';
 import { useRef, useState } from 'react';
-import { FaEdit, FaTrash } from 'react-icons/fa';
+import { FaEdit, FaTimes, FaTrash } from 'react-icons/fa';
 import './Participants.css';
 
 export const Participants = ({
@@ -89,6 +89,15 @@ export const Participants = ({
     }, 0);
   };
 
+  const cancelNewParticipant = () => {
+    setInitialInputs((previousInputs) => previousInputs.slice(0, -1));
+    setParticipants((previousParticipants) => previousParticipants.slice(0, -1));
+    setNewParticipant(false);
+    setCenterUnlockedSection(false);
+    setInitialInputsLocked(true);
+    onAddParticipantModeChange?.(false);
+  };
+
   const deleteParticipant = async (participantPosition) => {
     try {
       const response = await api.delete(`/deleteParticipant/${participantPosition}`);
@@ -117,6 +126,17 @@ export const Participants = ({
 
   return (
     <div className={`participants${initialInputsLocked ? ' participants-locked' : ''}`}>
+      {newParticipant && (
+        <button
+          type="button"
+          className="close-add-participant"
+          title="Cancel adding participant"
+          aria-label="Cancel adding participant"
+          onClick={cancelNewParticipant}
+        >
+          <FaTimes aria-hidden="true" />
+        </button>
+      )}
       {!initialInputsLocked && (
         <div
           ref={unlockedSectionRef}

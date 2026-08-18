@@ -7,6 +7,7 @@ html, body {
 }
 
 .participants {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -23,6 +24,31 @@ html, body {
 .participants.participants-locked {
   margin-top: 0;
 }
+
+.close-add-participant {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 1px solid #ccc;
+  border-radius: 0.4rem;
+  background-color: #fff;
+  color: #555;
+  cursor: pointer;
+}
+
+.close-add-participant:hover,
+.close-add-participant:focus-visible {
+  border-color: #c62828;
+  color: #c62828;
+  outline: none;
+}
+
 .participant-inputs {
   display: flex;
   flex-direction: column;
