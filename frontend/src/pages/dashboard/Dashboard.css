@@ -1,0 +1,85 @@
+.dashboard-page {
+  min-height: 100vh;
+  padding: 2rem;
+  background: linear-gradient(180deg, #fff8ef 0%, #f6f7fb 100%);
+}
+
+.dashboard-shell {
+  max-width: 960px;
+  margin: 0 auto;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.dashboard-header,
+.dashboard-card,
+.kitchen-card {
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  gap: 1rem;
+}
+
+.dashboard-card {
+  padding: 1.5rem;
+}
+
+.dashboard-card form {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.dashboard-card input,
+.dashboard-card button,
+.kitchen-card button {
+  border-radius: 999px;
+  font-size: 1rem;
+}
+
+.dashboard-card input {
+  flex: 1 1 260px;
+  padding: 0.85rem 1rem;
+  border: 1px solid #d7dce5;
+}
+
+.dashboard-card button,
+.kitchen-card button,
+.dashboard-header button {
+  border: none;
+  padding: 0.85rem 1.2rem;
+  background: #f57c00;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.kitchen-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.kitchen-card {
+  padding: 1.25rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.kitchen-meta {
+  color: #475569;
+  margin: 0;
+}
+
+.dashboard-error {
+  color: #b91c1c;
+  margin: 0;
+  font-weight: 600;
+}

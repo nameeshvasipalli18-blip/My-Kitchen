@@ -1,33 +1,23 @@
-import {useState, useRef, useEffect} from 'react';
-import {Participants} from '../../components/participants/Participants.jsx';
-import {TripManager} from '../../components/item inputs/TripManager.jsx';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Participants } from '../../components/participants/Participants.jsx';
+import { TripManager } from '../../components/item inputs/TripManager.jsx';
 import { ItemCards } from '../../components/item cards/ItemCards.jsx';
 import { RecentTrips } from '../../components/item cards/RecentTrips.jsx';
-import {themes} from '../../components/themes/themes.jsx';
+import { themes } from '../../components/themes/themes.jsx';
 import api from '../../api.js';
 import { FaReceipt, FaUsers } from 'react-icons/fa6';
 import './ManualSplit.css';
 
 const ManualSplit = () => {
-  const emptyItem = {
-    name: "",
-    price: "",
-    paidBy: "",
-    splitType: "",
-    splitBetween: []
-  };
-  const [splitBetween, setSplitBetween] = useState("");
+  const { kitchenId } = useParams();
+  const navigate = useNavigate();
+  const emptyItem = useMemo(() => ({ name: '', price: '', paidBy: '', splitType: '', splitBetween: [] }), []);
   const [initialInputs, setInitialInputs] = useState([]);
-  const [initialInputsLocked, setInitialInputsLocked] = useState(false);
-  const inputRef = useRef([]);
-  const [currentItem, setCurrentItem] = useState(emptyItem);
-  const itemNameRef = useRef(null);
-  const [selectedItemIndex, setSelectedItemIndex] = useState(null);
   const [participants, setParticipants] = useState([]);
-  const [addParticipantMode, setAddParticipantMode] = useState(false);
+  const [memberDetails, setMemberDetails] = useState([]);
   const [activeMenu, setActiveMenu] = useState(null);
   const [closingMenu, setClosingMenu] = useState(null);
-  const [tripId, setTripId] = useState(0);
   const [tripStarted, setTripStarted] = useState(false);
   const [tripDefaultsEditable, setTripDefaultsEditable] = useState(true);
   const [activeTripEntering, setActiveTripEntering] = useState(false);
@@ -37,68 +27,64 @@ const ManualSplit = () => {
   const [editingTripId, setEditingTripId] = useState(null);
   const [editingItemIndex, setEditingItemIndex] = useState(null);
   const [newlyAddedItemIndex, setNewlyAddedItemIndex] = useState(null);
-  const [shoppingTrip, setShoppingTrip] = useState({
-      id: tripId,
-      date: new Date().toISOString().split("T")[0],
-      store: 'lidl',
-      participants: initialInputs.length > 0 ? [...initialInputs] : [],
-      defaultPayer: initialInputs.length > 0 ? initialInputs[0] : '',
-      defaultSplit: {
-        type: 'all',
-        between: initialInputs ? [...initialInputs] : [],
-      },
-      items: [],
-    });
   const [shoppingTrips, setShoppingTrips] = useState([]);
-  const safeInitialInputs = Array.isArray(initialInputs) ? initialInputs : [];
+  const [selectedItemIndex, setSelectedItemIndex] = useState(null);
+  const [, setCurrentItem] = useState(emptyItem);
+  const itemNameRef = useRef(null);
+  const inputRef = useRef([]);
+  const [kitchenName, setKitchenName] = useState('');
+
+  const buildParticipants = (names) => names.map((name, index) => ({ name, theme: themes[index % themes.length] }));
+
+  const createDefaultTrip = useCallback((names) => ({
+    id: Date.now(),
+    date: new Date().toISOString().split('T')[0],
+    store: 'lidl',
+    participants: [...names],
+    defaultPayer: names[0] || '',
+    defaultSplit: { type: 'all', between: [...names] },
+    items: [],
+  }), []);
+
+  const [shoppingTrip, setShoppingTrip] = useState(createDefaultTrip([]));
+
+  const refreshKitchenMembers = useCallback(async () => {
+    const response = await api.get(`/kitchens/${kitchenId}`);
+    const kitchen = response.data;
+    const names = kitchen.members.map((member) => member.username);
+    setKitchenName(kitchen.name);
+    setMemberDetails(kitchen.members);
+    setInitialInputs(names);
+    setParticipants(buildParticipants(names));
+    setShoppingTrip((previousTrip) => {
+      if (previousTrip.items.length > 0 || previousTrip.participants.length > 0 || previousTrip.defaultPayer) {
+        return previousTrip;
+      }
+      return createDefaultTrip(names);
+    });
+  }, [createDefaultTrip, kitchenId]);
+
+  const loadBills = useCallback(async () => {
+    const response = await api.get(`/kitchens/${kitchenId}/bills`);
+    setShoppingTrips(Array.isArray(response.data?.trips) ? response.data.trips : []);
+  }, [kitchenId]);
 
   useEffect(() => {
-    const isMountedRef = { current: true };
-    const timerId = setTimeout(() => {
-      (async () => {
-        try {
-          const response = await api.get('/participants');
-          const tripResponse = await api.get('/trips');
-
-          if (response.status === 200 && isMountedRef.current) {
-            console.log('Participants fetched successfully:', response.data);
-            const fetchedParticipants = Array.isArray(response.data?.participants)
-              ? response.data.participants
-              : [];
-            setInitialInputs(fetchedParticipants);
-            setParticipants(
-              fetchedParticipants.map((name, index) => ({
-                name,
-                theme: themes[index % themes.length],
-              }))
-            );
-            setShoppingTrip((previousTrip) => ({
-              ...previousTrip,
-              participants: [...fetchedParticipants],
-              defaultPayer: fetchedParticipants[0] || '',
-              defaultSplit: {
-                ...previousTrip.defaultSplit,
-                between: [...fetchedParticipants],
-              },
-            }));
-            setInitialInputsLocked(
-              fetchedParticipants.length > 0 &&
-              fetchedParticipants.every((name) => String(name).trim() !== "")
-            );
-            setShoppingTrips(Array.isArray(tripResponse.data.trips) ? tripResponse.data.trips : []);
-          }
-        } catch (error) {
-          console.error('Error fetching participants:', error);
+    let active = true;
+    (async () => {
+      try {
+        await refreshKitchenMembers();
+        await loadBills();
+      } catch {
+        if (active) {
+          navigate('/dashboard');
         }
-      })();
-    }
-    , 0);
-
+      }
+    })();
     return () => {
-      clearTimeout(timerId);
-      isMountedRef.current = false;
+      active = false;
     };
-  }, []);
+  }, [loadBills, navigate, refreshKitchenMembers]);
 
   const editTrip = (trip) => {
     setShoppingTrip({
@@ -111,12 +97,9 @@ const ManualSplit = () => {
         type: trip.defaultSplit?.type || 'all',
         between: Array.isArray(trip.defaultSplit?.between) ? [...trip.defaultSplit.between] : [],
       },
-      items: Array.isArray(trip.items) ? trip.items.map((item) => ({
-        ...item,
-        splitBetween: Array.isArray(item.splitBetween) ? [...item.splitBetween] : [],
-      })) : [],
+      items: Array.isArray(trip.items) ? trip.items.map((item) => ({ ...item, splitBetween: Array.isArray(item.splitBetween) ? [...item.splitBetween] : [] })) : [],
     });
-    setEditingTripId(trip.dbTripId);
+    setEditingTripId(trip.dbTripId ?? trip.id);
     setEditingItemIndex(null);
     setTripDefaultsEditable(false);
     setTripStarted(true);
@@ -124,81 +107,50 @@ const ManualSplit = () => {
   };
 
   const deleteTrip = async (trip) => {
-    if (!Number.isInteger(trip.dbTripId)) {
+    const persistedId = trip.dbTripId ?? trip.id;
+    if (!Number.isInteger(persistedId)) {
       return;
     }
-
-    try {
-      const response = await api.delete(`/trip/${trip.dbTripId}`);
-      if (response.status === 200) {
-        setShoppingTrips((trips) => trips.filter((savedTrip) => savedTrip.dbTripId !== trip.dbTripId));
-      }
-    } catch (error) {
-      console.error('Error deleting trip:', error);
-    }
+    await api.delete(`/kitchens/${kitchenId}/bills/${persistedId}`);
+    await loadBills();
   };
 
   const deleteActiveTrip = async () => {
     if (Number.isInteger(editingTripId)) {
-      await deleteTrip({ dbTripId: editingTripId });
+      await deleteTrip({ id: editingTripId });
     }
-
     setTripStarted(false);
     setTripDefaultsEditable(true);
     setEditingTripId(null);
     setEditingItemIndex(null);
+    setShoppingTrip(createDefaultTrip(initialInputs));
   };
 
   const closeActiveTrip = async () => {
     if (!Number.isInteger(editingTripId) || activeTripClosing) {
       return;
     }
-
     try {
-      const response = await api.put(`/trip/${editingTripId}`, shoppingTrip);
-      if (response.status !== 200) {
-        return;
-      }
-
-      const tripsResponse = await api.get('/trips');
-      if (tripsResponse.status === 200) {
-        setShoppingTrips(Array.isArray(tripsResponse.data?.trips) ? tripsResponse.data.trips : []);
-      }
-
+      await api.put(`/kitchens/${kitchenId}/bills/${editingTripId}`, shoppingTrip);
+      await loadBills();
       setActiveTripClosing(true);
       setTimeout(() => {
-        setShoppingTrip({
-          id: tripId,
-          date: new Date().toISOString().split("T")[0],
-          store: 'lidl',
-          participants: [...safeInitialInputs],
-          defaultPayer: safeInitialInputs[0] || '',
-          defaultSplit: {
-            type: 'all',
-            between: [...safeInitialInputs],
-          },
-          items: [],
-        });
+        setShoppingTrip(createDefaultTrip(initialInputs));
         setTripStarted(false);
         setTripDefaultsEditable(true);
         setEditingTripId(null);
         setEditingItemIndex(null);
         setActiveTripClosing(false);
       }, 250);
-    } catch (error) {
-      console.error('Error saving edited bill:', error);
+    } catch {
+      // ignore and keep current state
     }
   };
 
   const deleteActiveItem = (itemIndex) => {
-    setShoppingTrip((trip) => ({
-      ...trip,
-      items: trip.items.filter((_, index) => index !== itemIndex),
-    }));
+    setShoppingTrip((trip) => ({ ...trip, items: trip.items.filter((_, index) => index !== itemIndex) }));
     setEditingItemIndex((currentIndex) => {
-      if (currentIndex === itemIndex) {
-        return null;
-      }
+      if (currentIndex === itemIndex) return null;
       return currentIndex !== null && currentIndex > itemIndex ? currentIndex - 1 : currentIndex;
     });
   };
@@ -208,9 +160,10 @@ const ManualSplit = () => {
     setTimeout(() => setNewlyAddedItemIndex(null), 350);
   };
 
-  const highlightSavedTrip = (tripId) => {
-    setNewlySavedTripId(tripId);
+  const highlightSavedTrip = (savedId) => {
+    setNewlySavedTripId(savedId);
     setTimeout(() => setNewlySavedTripId(null), 450);
+    loadBills();
   };
 
   const animateActiveTripEntry = () => {
@@ -218,13 +171,13 @@ const ManualSplit = () => {
     setTimeout(() => setActiveTripEntering(false), 300);
   };
 
-  const participantCount = safeInitialInputs.filter((name) => String(name).trim()).length;
-  const participantsPanelVisible = !initialInputsLocked || activeMenu === 'participants' || closingMenu === 'participants';
+  const participantCount = initialInputs.filter((name) => String(name).trim()).length;
+  const participantsPanelVisible = activeMenu === 'participants' || closingMenu === 'participants';
   const billsPanelVisible = activeMenu === 'bills' || closingMenu === 'bills';
-  const menuPanelOpen = !initialInputsLocked || activeMenu !== null || closingMenu !== null;
+  const menuPanelOpen = activeMenu !== null || closingMenu !== null;
 
   const toggleParticipantsMenu = () => {
-    if (activeMenu === 'participants' && initialInputsLocked) {
+    if (activeMenu === 'participants') {
       setClosingMenu('participants');
       setTimeout(() => {
         setActiveMenu(null);
@@ -232,7 +185,6 @@ const ManualSplit = () => {
       }, 250);
       return;
     }
-
     setClosingMenu(null);
     setActiveMenu('participants');
   };
@@ -246,94 +198,57 @@ const ManualSplit = () => {
       }, 250);
       return;
     }
-
     setClosingMenu(null);
     setActiveMenu('bills');
   };
 
-
   return (
     <div className="kitchen-split-container">
       <div className="kitchen-split-header">
-        <p>Kitchen Split</p>
+        <p>{kitchenName || 'Kitchen Split'}</p>
+        <button className="lock-button" type="button" onClick={() => navigate('/dashboard')}>Back to kitchens</button>
       </div>
       <div className={`kitchen-split-body${menuPanelOpen ? ' menu-panel-open' : ''}${participantsPanelVisible ? ' participants-menu-open' : ''}`}>
         <nav className="kitchen-split-menu" aria-label="Kitchen Split menu">
-          <button
-            className={`kitchen-menu-button${activeMenu === 'participants' || !initialInputsLocked ? ' kitchen-menu-button-active' : ''}`}
-            type="button"
-            title="Show participants"
-            aria-label="Show participants"
-            aria-pressed={activeMenu === 'participants'}
-            onClick={toggleParticipantsMenu}
-          >
+          <button className={`kitchen-menu-button${activeMenu === 'participants' ? ' kitchen-menu-button-active' : ''}`} type="button" title="Show members" aria-label="Show members" aria-pressed={activeMenu === 'participants'} onClick={toggleParticipantsMenu}>
             <FaUsers aria-hidden="true" />
             <span className="kitchen-menu-count">{participantCount}</span>
           </button>
-          <button
-            className={`kitchen-menu-button${activeMenu === 'bills' ? ' kitchen-menu-button-active' : ''}`}
-            type="button"
-            title="Show recent bills"
-            aria-label="Show recent bills"
-            aria-pressed={activeMenu === 'bills'}
-            onClick={toggleBillsMenu}
-          >
+          <button className={`kitchen-menu-button${activeMenu === 'bills' ? ' kitchen-menu-button-active' : ''}`} type="button" title="Show recent bills" aria-label="Show recent bills" aria-pressed={activeMenu === 'bills'} onClick={toggleBillsMenu}>
             <FaReceipt aria-hidden="true" />
             <span className="kitchen-menu-count">{shoppingTrips.length}</span>
           </button>
         </nav>
 
         {menuPanelOpen && (
-        <aside className={`kitchen-split-menu-panel${participantsPanelVisible ? ' participants-menu-panel' : ''}${closingMenu === 'participants' ? ' participants-menu-panel-closing' : ''}${billsPanelVisible ? ' bills-menu-panel' : ''}${closingMenu === 'bills' ? ' bills-menu-panel-closing' : ''}`}>
-          {participantsPanelVisible && (
-          <Participants
-            splitBetween={splitBetween}
-            setSplitBetween={setSplitBetween}
-            initialInputs={initialInputs}
-            setInitialInputs={setInitialInputs}
-            initialInputsLocked={initialInputsLocked}
-            setInitialInputsLocked={setInitialInputsLocked}
-            setParticipants={setParticipants}
-            inputRef={inputRef}
-            itemNameRef={itemNameRef}
-            onAddParticipantModeChange={(mode) => {
-              setAddParticipantMode(mode);
-              if (mode) {
-                setActiveMenu('participants');
-              }
-            }}
-            isMenuOpen
-            showMenuToggle={false}
-          />
-          )}
-          {initialInputsLocked && billsPanelVisible && (
-            <RecentTrips
-              participants={participants}
-              shoppingTrips={shoppingTrips}
-              newlySavedTripId={newlySavedTripId}
-              onEditTrip={editTrip}
-              onDeleteTrip={deleteTrip}
-              isMenuOpen
-              showMenuToggle={false}
-            />
-          )}
-        </aside>
+          <aside className={`kitchen-split-menu-panel${participantsPanelVisible ? ' participants-menu-panel' : ''}${closingMenu === 'participants' ? ' participants-menu-panel-closing' : ''}${billsPanelVisible ? ' bills-menu-panel' : ''}${closingMenu === 'bills' ? ' bills-menu-panel-closing' : ''}`}>
+            {participantsPanelVisible && (
+              <Participants
+                kitchenId={Number(kitchenId)}
+                initialInputs={initialInputs}
+                setInitialInputs={setInitialInputs}
+                setParticipants={setParticipants}
+                memberDetails={memberDetails}
+                refreshKitchenMembers={refreshKitchenMembers}
+                inputRef={inputRef}
+                itemNameRef={itemNameRef}
+                isMenuOpen
+                showMenuToggle={false}
+              />
+            )}
+            {billsPanelVisible && (
+              <RecentTrips participants={participants} shoppingTrips={shoppingTrips} newlySavedTripId={newlySavedTripId} onEditTrip={editTrip} onDeleteTrip={deleteTrip} isMenuOpen showMenuToggle={false} />
+            )}
+          </aside>
         )}
 
         <div className="kitchen-split-content">
-          {initialInputsLocked && (
+          {initialInputs.length > 0 && (
             <TripManager
-              initialInputs={safeInitialInputs}
-              emptyItem={emptyItem}
-              currentItem={currentItem}
-              setCurrentItem={setCurrentItem}
-              selectedItemIndex={selectedItemIndex}
-              setSelectedItemIndex={setSelectedItemIndex}
+              kitchenId={Number(kitchenId)}
+              initialInputs={initialInputs}
               itemNameRef={itemNameRef}
-              participants={participants}
               shoppingTrip={shoppingTrip}
-              tripId={tripId}
-              setTripId={setTripId}
               setShoppingTrip={setShoppingTrip}
               shoppingTrips={shoppingTrips}
               setShoppingTrips={setShoppingTrips}
@@ -352,8 +267,9 @@ const ManualSplit = () => {
               setEditingItemIndex={setEditingItemIndex}
             />
           )}
-          {initialInputsLocked && (tripStarted || shoppingTrips.length > 0) && (
+          {initialInputs.length > 0 && (tripStarted || shoppingTrips.length > 0) && (
             <ItemCards
+              kitchenId={Number(kitchenId)}
               selectedItemIndex={selectedItemIndex}
               setSelectedItemIndex={setSelectedItemIndex}
               setCurrentItem={setCurrentItem}
@@ -375,8 +291,6 @@ const ManualSplit = () => {
               onCloseActiveTrip={closeActiveTrip}
             />
           )}
-          <div className="settlement-results">
-          </div>
         </div>
       </div>
     </div>
