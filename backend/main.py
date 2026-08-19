@@ -6,7 +6,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field as PydanticField
 import uvicorn
 
+from app.routers import auth   
+
 app = FastAPI()
+
+app.include_router(auth.router)
 
 origins = [
     "http://localhost:5173",
