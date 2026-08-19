@@ -248,3 +248,9 @@ html, body {
   flex-direction: column;
   align-items: center;
 }
+
+.participant-role {
+  font-size: 0.85rem;
+  color: #475569;
+  text-transform: capitalize;
+}

@@ -324,65 +324,6 @@ def calculate_split(initials: list[str], items: list[Item]) -> dict:
         "balances": {person: format_money(amount) for person, amount in balances.items()},
         "settlements": settle_balances(balances),
     }
-
-
-def calculate_database_split(trips: list[TripTable], stored_items: list[ItemTable]) -> dict:
-    items_by_trip: dict[int, list[ItemTable]] = {}
-    for item in stored_items:
-        items_by_trip.setdefault(item.trip_id, []).append(item)
-
-    participants: list[str] = []
-    balances: dict[str, int] = {}
-    item_results = []
-    total_cents = 0
-
-    for trip in trips:
-        trip_items = items_by_trip.get(trip.id, [])
-        if not trip_items:
-            continue
-
-        trip_participant_names = trip.participants.split(",")
-        for stored_item in trip_items:
-            item_people = [stored_item.paidBy]
-            if stored_item.splitBetween:
-                item_people.extend(stored_item.splitBetween.split(","))
-            for person in item_people:
-                if person and person not in trip_participant_names:
-                    trip_participant_names.append(person)
-
-        trip_participants = validate_participants(trip_participant_names)
-        for person in trip_participants:
-            if person not in balances:
-                participants.append(person)
-                balances[person] = 0
-
-        for stored_item in trip_items:
-            item = Item(
-                name=stored_item.name,
-                price=stored_item.price,
-                paidBy=stored_item.paidBy,
-                splitType=stored_item.splitType,
-                splitBetween=stored_item.splitBetween.split(",") if stored_item.splitBetween else [],
-            )
-            item_result = calculate_item_split(trip_participants, item)
-            total_cents += item_result.pop("totalInCents")
-            item_balances = item_result.pop("balancesInCents")
-            for person, amount in item_balances.items():
-                balances[person] += amount
-            item_results.append(item_result)
-
-    if not item_results:
-        raise HTTPException(status_code=400, detail="No saved items are available to split.")
-
-    return {
-        "participants": participants,
-        "total": format_money(total_cents),
-        "items": item_results,
-        "balances": {person: format_money(amount) for person, amount in balances.items()},
-        "settlements": settle_balances(balances),
-    }
-
-
 @app.post("/participantable")
 async def add_participants(data: Participants):
     participant_ids = create_participant(data)
@@ -423,55 +364,6 @@ async def split(data: Split):
     items = data.items or ([data.item] if data.item else [])
     result = calculate_split(data.initialInputs, items)
     return {"message": "Split processed successfully", "result": result}
-
-
-@app.post("/trip/{trip_id}/split")
-async def split_saved_trip(trip_id: int):
-    with Session(engine) as session:
-        trip = session.get(TripTable, trip_id)
-        if not trip:
-            raise HTTPException(status_code=404, detail="Trip not found")
-
-        items = session.query(ItemTable).filter(ItemTable.trip_id == trip.id).all()
-        persisted_items = [
-            Item(
-                name=item.name,
-                price=item.price,
-                paidBy=item.paidBy,
-                splitType=item.splitType,
-                splitBetween=item.splitBetween.split(",") if item.splitBetween else [],
-            )
-            for item in items
-        ]
-        result = calculate_split(trip.participants.split(","), persisted_items)
-        return {"message": "Split processed successfully", "result": result}
-
-
-@app.post("/database/split")
-async def split_database_items():
-    with Session(engine) as session:
-        trips = session.query(TripTable).all()
-        stored_items = session.query(ItemTable).all()
-        trips_by_month: dict[str, list[TripTable]] = {}
-        for trip in trips:
-            month = trip.date[:7]
-            trips_by_month.setdefault(month, []).append(trip)
-
-        all_result = calculate_database_split(trips, stored_items)
-        monthly_results = [
-            {
-                "month": month,
-                "result": calculate_database_split(month_trips, stored_items),
-            }
-            for month, month_trips in sorted(trips_by_month.items(), reverse=True)
-        ]
-        return {
-            "message": "Split processed successfully",
-            "result": {
-                "allResult": all_result,
-                "monthlyResults": monthly_results,
-            },
-        }
 
 
 @app.post("/trip")
@@ -536,4 +428,6 @@ async def delete_trip(trip_id: int):
 
 
 if __name__ == "__main__":
+    import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

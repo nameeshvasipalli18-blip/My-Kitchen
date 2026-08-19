@@ -1,20 +1,30 @@
-// import {useState, useRef} from 'react';
-import {useNavigate} from 'react-router-dom';
+import { Navigate, Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext.jsx';
 import './Home.css';
 
 const Home = () => {
-    const navigate = useNavigate();
-    return (
-        <div className="home-container">
-            <div className="home-content">
-                <p className="head">Welcome to the Kitchen Split!</p>
-                <p className="tagline">Cooking Up fair splits</p>
-            </div>
-            <div className="button-container">
-                <button className="split-button" onClick={() => navigate('/manual-split')}>Manual Split</button>
-                {/* <button className="split-button" onClick={() => navigate('/excel-split')}>Excel Split</button> */}
-            </div>
-        </div>
-    );
+  const { user, isLoading } = useAuth();
+
+  if (isLoading) {
+    return <div className="home-container"><div className="home-content"><p className="head">Loading…</p></div></div>;
+  }
+
+  if (user) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return (
+    <div className="home-container">
+      <div className="home-content">
+        <p className="head">Welcome to the Kitchen Split!</p>
+        <p className="tagline">Shared kitchens, shared bills, private accounts.</p>
+      </div>
+      <div className="button-container">
+        <Link className="split-button" to="/login">Log in</Link>
+        <Link className="split-button" to="/register">Create account</Link>
+      </div>
+    </div>
+  );
 };
+
 export default Home;
