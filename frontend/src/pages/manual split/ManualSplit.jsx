@@ -3,9 +3,10 @@ import {Participants} from '../../components/participants/Participants.jsx';
 import {TripManager} from '../../components/item inputs/TripManager.jsx';
 import { ItemCards } from '../../components/item cards/ItemCards.jsx';
 import { RecentTrips } from '../../components/item cards/RecentTrips.jsx';
+import { Results } from '../../components/results/Results.jsx';
 import {themes} from '../../components/themes/themes.jsx';
 import api from '../../api.js';
-import { FaReceipt, FaUsers } from 'react-icons/fa6';
+import { FaReceipt, FaScaleBalanced, FaUsers } from 'react-icons/fa6';
 import './ManualSplit.css';
 
 const ManualSplit = () => {
@@ -24,7 +25,7 @@ const ManualSplit = () => {
   const itemNameRef = useRef(null);
   const [selectedItemIndex, setSelectedItemIndex] = useState(null);
   const [participants, setParticipants] = useState([]);
-  const [addParticipantMode, setAddParticipantMode] = useState(false);
+  const [, setAddParticipantMode] = useState(false);
   const [activeMenu, setActiveMenu] = useState(null);
   const [closingMenu, setClosingMenu] = useState(null);
   const [tripId, setTripId] = useState(0);
@@ -37,6 +38,9 @@ const ManualSplit = () => {
   const [editingTripId, setEditingTripId] = useState(null);
   const [editingItemIndex, setEditingItemIndex] = useState(null);
   const [newlyAddedItemIndex, setNewlyAddedItemIndex] = useState(null);
+  const [splitResult, setSplitResult] = useState(null);
+  const [splitError, setSplitError] = useState('');
+  const [isSplitting, setIsSplitting] = useState(false);
   const [shoppingTrip, setShoppingTrip] = useState({
       id: tripId,
       date: new Date().toISOString().split("T")[0],
@@ -61,7 +65,6 @@ const ManualSplit = () => {
           const tripResponse = await api.get('/trips');
 
           if (response.status === 200 && isMountedRef.current) {
-            console.log('Participants fetched successfully:', response.data);
             const fetchedParticipants = Array.isArray(response.data?.participants)
               ? response.data.participants
               : [];
@@ -251,6 +254,23 @@ const ManualSplit = () => {
     setActiveMenu('bills');
   };
 
+  const calculateSplit = async () => {
+    if (isSplitting) {
+      return;
+    }
+
+    setSplitError('');
+    setIsSplitting(true);
+    try {
+      const response = await api.post('/database/split');
+      setSplitResult(response.data?.result || null);
+    } catch (error) {
+      setSplitError(error.response?.data?.detail || 'Unable to calculate this split. Please try again.');
+    } finally {
+      setIsSplitting(false);
+    }
+  };
+
 
   return (
     <div className="kitchen-split-container">
@@ -280,6 +300,16 @@ const ManualSplit = () => {
           >
             <FaReceipt aria-hidden="true" />
             <span className="kitchen-menu-count">{shoppingTrips.length}</span>
+          </button>
+          <button
+            className="kitchen-menu-button"
+            type="button"
+            title="Calculate split"
+            aria-label="Calculate split"
+            disabled={isSplitting}
+            onClick={calculateSplit}
+          >
+            <FaScaleBalanced aria-hidden="true" />
           </button>
         </nav>
 
@@ -321,7 +351,15 @@ const ManualSplit = () => {
         )}
 
         <div className="kitchen-split-content">
-          {initialInputsLocked && (
+          {splitResult ? (
+            <>
+              <Results result={splitResult} />
+              <button className="return-to-trip-button" type="button" onClick={() => setSplitResult(null)}>
+                Return to trip
+              </button>
+            </>
+          ) : initialInputsLocked && (
+            <>
             <TripManager
               initialInputs={safeInitialInputs}
               emptyItem={emptyItem}
@@ -335,7 +373,6 @@ const ManualSplit = () => {
               tripId={tripId}
               setTripId={setTripId}
               setShoppingTrip={setShoppingTrip}
-              shoppingTrips={shoppingTrips}
               setShoppingTrips={setShoppingTrips}
               setTripStarted={setTripStarted}
               tripStarted={tripStarted}
@@ -351,8 +388,8 @@ const ManualSplit = () => {
               editingItemIndex={editingItemIndex}
               setEditingItemIndex={setEditingItemIndex}
             />
-          )}
-          {initialInputsLocked && (tripStarted || shoppingTrips.length > 0) && (
+            {splitError && <p className="split-error" role="alert">{splitError}</p>}
+            {(tripStarted || shoppingTrips.length > 0) && (
             <ItemCards
               selectedItemIndex={selectedItemIndex}
               setSelectedItemIndex={setSelectedItemIndex}
@@ -374,9 +411,9 @@ const ManualSplit = () => {
               isEditingActiveTrip={Number.isInteger(editingTripId)}
               onCloseActiveTrip={closeActiveTrip}
             />
+            )}
+            </>
           )}
-          <div className="settlement-results">
-          </div>
         </div>
       </div>
     </div>

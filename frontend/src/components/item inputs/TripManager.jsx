@@ -1,20 +1,16 @@
-import {useState, useEffect} from 'react';
+import {useState} from 'react';
 import { ItemManager } from './ItemManager.jsx';
 import api from '../../api.js';
 import './ItemInputs.css';
 
 
-export const TripManager = ({initialInputs, itemNameRef, shoppingTrip, setShoppingTrip, shoppingTrips, setShoppingTrips, setTripStarted, tripStarted, tripDefaultsEditable, setTripDefaultsEditable, isSavingTrip, setIsSavingTrip, onTripSaved, onItemAdded, onTripStarted, editingTripId, setEditingTripId, editingItemIndex, setEditingItemIndex}) => {
+export const TripManager = ({initialInputs, itemNameRef, shoppingTrip, setShoppingTrip, setShoppingTrips, setTripStarted, tripStarted, tripDefaultsEditable, setTripDefaultsEditable, isSavingTrip, setIsSavingTrip, onTripSaved, onItemAdded, onTripStarted, editingTripId, setEditingTripId, editingItemIndex, setEditingItemIndex}) => {
     const [tripCount, setTripCount] = useState(1);
     const [settlementResults, setSettlementResults] = useState(null);
     const [customSplitParticipants, setCustomSplitParticipants] = useState(false);
     const [startTripEntering, setStartTripEntering] = useState(false);
     const [isStartingTrip, setIsStartingTrip] = useState(false);
     const [itemInputsEntering, setItemInputsEntering] = useState(false);
-    
-    useEffect(() => {
-      console.log('Shopping Trips:', shoppingTrips);
-    }, [shoppingTrips]);
 
     const submitTrip = async () => {
       try {
