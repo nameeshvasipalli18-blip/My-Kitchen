@@ -23,7 +23,6 @@ export const Participants = ({
 }) => {
   const [newParticipant, setNewParticipant] = useState(false);
   const [isParticipantsOpen, setIsParticipantsOpen] = useState(false);
-  const [centerUnlockedSection, setCenterUnlockedSection] = useState(false);
   const [inviteIdentifier, setInviteIdentifier] = useState('');
   const [inviteError, setInviteError] = useState('');
   const unlockedSectionRef = useRef(null);
@@ -137,7 +136,6 @@ export const Participants = ({
   };
 
   const lockParticipants = () => {
-    setCenterUnlockedSection(false);
     onAddParticipantModeChange?.(false);
     setInitialInputsLocked(true);
     setIsParticipantsOpen(false);
@@ -151,7 +149,6 @@ export const Participants = ({
     setInitialInputsLocked(false);
     setIsParticipantsOpen(true);
     setNewParticipant(false);
-    setCenterUnlockedSection(true);
     onAddParticipantModeChange?.(true);
     setTimeout(() => {
       inputRef.current[index]?.focus();
@@ -162,7 +159,6 @@ export const Participants = ({
     setInitialInputs((previousInputs) => previousInputs.slice(0, -1));
     setParticipants((previousParticipants) => previousParticipants.slice(0, -1));
     setNewParticipant(false);
-    setCenterUnlockedSection(false);
     setInitialInputsLocked(true);
     onAddParticipantModeChange?.(false);
   };
@@ -190,7 +186,7 @@ export const Participants = ({
             </button>
           )}
           {!initialInputsLocked && (
-            <div ref={unlockedSectionRef} className={`participants-unlocked${centerUnlockedSection ? ' participants-unlocked-centered' : ''}`}>
+            <div ref={unlockedSectionRef} className="participants-unlocked participants-unlocked-centered">
               <h3>Participants</h3>
               <div className="split-between">
                 <label>Split Between:</label>

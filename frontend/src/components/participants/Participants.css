@@ -24,6 +24,7 @@ html, body {
 }
 
 .participants.participants-locked {
+  width: max-content;
   margin-top: 0;
 }
 
@@ -102,6 +103,56 @@ html, body {
   gap: 1rem;
   width: 100%;
 }
+
+.participants-unlocked .participants-inputs {
+  width: min(100%, 28rem);
+  box-sizing: border-box;
+  padding: 1rem;
+  border: 1px solid #c8dcb9;
+  border-radius: 6px;
+  background: #fbfff8;
+}
+
+.participants-unlocked .participants-inputs label {
+  align-self: flex-start;
+  color: #244615;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.participants-unlocked .participants-inputs > input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #9ac47e;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #244615;
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.participants-unlocked .participants-inputs > input:focus {
+  border-color: #427d1e;
+  outline: 2px solid rgba(115, 187, 55, 0.25);
+  outline-offset: 2px;
+}
+
+.participants-unlocked .participants-inputs .lock-button {
+  align-self: center;
+  margin-top: 0.25rem;
+}
+
+@media (max-width: 30rem) {
+  .participants-unlocked .participants-inputs {
+    padding: 0.75rem;
+  }
+
+  .participants-unlocked .participants-inputs .lock-button {
+    width: 100%;
+  }
+}
+
 .participant-input {
   display: flex;
   flex-direction: row;
@@ -242,11 +293,16 @@ html, body {
 
 .participants-unlocked-centered {
   width: min(42rem, 92vw);
-  margin-left: auto;
-  margin-right: auto;
+  max-width: 100%;
+  box-sizing: border-box;
+  align-self: center;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  text-align: center;
 }
 
 .participant-role {

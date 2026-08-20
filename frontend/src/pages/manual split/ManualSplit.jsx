@@ -6,7 +6,7 @@ import { ItemCards } from '../../components/item cards/ItemCards.jsx';
 import { RecentTrips } from '../../components/item cards/RecentTrips.jsx';
 import { themes } from '../../components/themes/themes.jsx';
 import api from '../../api.js';
-import { FaReceipt, FaUsers } from 'react-icons/fa6';
+import { FaKitchenSet, FaReceipt, FaUsers } from 'react-icons/fa6';
 import './ManualSplit.css';
 
 const ManualSplit = () => {
@@ -211,18 +211,23 @@ const ManualSplit = () => {
   return (
     <div className="kitchen-split-container">
       <div className="kitchen-split-header">
-        <p>{kitchenName || 'Kitchen Split'}</p>
-        <button className="lock-button" type="button" onClick={() => navigate('/dashboard')}>Back to kitchens</button>
+        <p className="kitchen-split-logo">
+          <span className="kitchen-split-logo-kitchen">Kitchen</span>
+          <span className="kitchen-split-logo-split">Split</span>
+        </p>
+        <button className="kitchens-navigation-button" type="button" title="View kitchens" aria-label="View kitchens" onClick={() => navigate('/dashboard')}>
+          <FaKitchenSet aria-hidden="true" />
+        </button>
       </div>
       <div className={`kitchen-split-body${menuPanelOpen ? ' menu-panel-open' : ''}${participantsPanelVisible ? ' participants-menu-open' : ''}`}>
         <nav className="kitchen-split-menu" aria-label="Kitchen Split menu">
           <button className={`kitchen-menu-button${activeMenu === 'participants' ? ' kitchen-menu-button-active' : ''}`} type="button" title="Show members" aria-label="Show members" aria-pressed={activeMenu === 'participants'} onClick={toggleParticipantsMenu}>
             <FaUsers aria-hidden="true" />
-            <span className="kitchen-menu-count">{participantCount}</span>
+            <span className="kitchen-menu-label">Members</span>
           </button>
           <button className={`kitchen-menu-button${activeMenu === 'bills' ? ' kitchen-menu-button-active' : ''}`} type="button" title="Show recent bills" aria-label="Show recent bills" aria-pressed={activeMenu === 'bills'} onClick={toggleBillsMenu}>
             <FaReceipt aria-hidden="true" />
-            <span className="kitchen-menu-count">{shoppingTrips.length}</span>
+            <span className="kitchen-menu-label">Recent bills</span>
           </button>
         </nav>
 
