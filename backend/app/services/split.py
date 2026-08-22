@@ -36,7 +36,7 @@ def validate_participants(initials: list[str]) -> list[str]:
 def get_split_people(participants: list[str], item: ItemPayload) -> list[str]:
     split_type = item.splitType.strip().lower()
     if split_type == "all":
-        return participants
+        return item.splitBetween or participants
     if split_type == "custom":
         return item.splitBetween
     if item.splitType == item.paidBy:

@@ -19,6 +19,11 @@ class UserResponse(BaseModel):
     email: str
     username: str
     isActive: bool
+    avoidedFoods: list[str] = Field(default_factory=list)
+
+
+class AvoidedFoodsUpdateRequest(BaseModel):
+    avoidedFoods: list[str] = Field(default_factory=list)
 
 
 class AuthResponse(BaseModel):

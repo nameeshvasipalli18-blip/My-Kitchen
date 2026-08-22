@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlmodel import Session, or_, select
 
@@ -14,13 +16,17 @@ from app.core.security import (
     verify_password,
 )
 from app.models import AuthTokenTable, UserTable, utc_now
-from app.schemas.auth import AuthResponse, LoginRequest, RegisterRequest, UserResponse
+from app.schemas.auth import AvoidedFoodsUpdateRequest, AuthResponse, LoginRequest, RegisterRequest, UserResponse
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 def serialize_user(user: UserTable) -> UserResponse:
-    return UserResponse(id=user.id, email=user.email, username=user.username, isActive=user.is_active)
+    try:
+        avoided_foods = json.loads(user.avoided_foods)
+    except (TypeError, json.JSONDecodeError):
+        avoided_foods = []
+    return UserResponse(id=user.id, email=user.email, username=user.username, isActive=user.is_active, avoidedFoods=avoided_foods)
 
 
 @router.post("/register", response_model=AuthResponse)
@@ -85,4 +91,19 @@ def logout(
 
 @router.get("/me", response_model=UserResponse)
 def me(user: UserTable = Depends(get_current_user)):
+    return serialize_user(user)
+
+
+@router.put("/me/avoided-foods", response_model=UserResponse)
+def update_avoided_foods(
+    data: AvoidedFoodsUpdateRequest,
+    user: UserTable = Depends(get_current_user),
+    session: Session = Depends(get_session),
+):
+    foods = list(dict.fromkeys(food.strip().lower() for food in data.avoidedFoods if food.strip()))
+    user.avoided_foods = json.dumps(foods)
+    user.updated_at = utc_now()
+    session.add(user)
+    session.commit()
+    session.refresh(user)
     return serialize_user(user)

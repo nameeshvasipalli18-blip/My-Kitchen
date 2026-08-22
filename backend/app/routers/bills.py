@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 
@@ -46,6 +48,22 @@ def _username_for_membership(session: Session, membership_id: int) -> str:
         return ""
     user = session.get(UserTable, membership.user_id)
     return user.username if user else ""
+
+
+def _excluded_member_names(session: Session, membership_by_name: dict[str, KitchenMembershipTable], item_name: str) -> set[str]:
+    normalized_item_name = item_name.strip().lower()
+    excluded = set()
+    for username, membership in membership_by_name.items():
+        user = session.get(UserTable, membership.user_id)
+        if not user:
+            continue
+        try:
+            avoided_foods = json.loads(user.avoided_foods)
+        except (TypeError, json.JSONDecodeError):
+            avoided_foods = []
+        if any(food.strip().lower() and food.strip().lower() in normalized_item_name for food in avoided_foods):
+            excluded.add(username)
+    return excluded
 
 
 def _serialize_bill(session: Session, bill: BillTable) -> dict:
@@ -160,6 +178,10 @@ def _persist_bill_payload(
             split_between = payload.participants
         elif bill_item.split_type == item.paidBy and not split_between:
             split_between = [item.paidBy]
+        excluded_members = _excluded_member_names(session, membership_by_name, item.name)
+        split_between = [participant_name for participant_name in split_between if participant_name not in excluded_members]
+        if not split_between:
+            raise HTTPException(status_code=400, detail=f"No eligible participants remain for {item.name} after food preferences are applied")
         for participant_name in split_between:
             if participant_name not in membership_by_name:
                 raise HTTPException(status_code=400, detail=f"Unknown split participant {participant_name}")
@@ -183,6 +205,7 @@ def split_preview(
 @router.get("/{kitchen_id}/bills")
 def list_bills(
     kitchen_id: int,
+    mine: bool = False,
     current_user: UserTable = Depends(get_current_user),
     session: Session = Depends(get_session),
 ):
@@ -190,7 +213,10 @@ def list_bills(
     kitchen = session.get(KitchenTable, kitchen_id)
     if not kitchen:
         raise HTTPException(status_code=404, detail="Kitchen not found")
-    bills = session.exec(select(BillTable).where(BillTable.kitchen_id == kitchen_id)).all()
+    statement = select(BillTable).where(BillTable.kitchen_id == kitchen_id)
+    if mine:
+        statement = statement.where(BillTable.created_by_user_id == current_user.id)
+    bills = session.exec(statement).all()
     return {"trips": [_serialize_bill(session, bill) for bill in bills]}
 
 

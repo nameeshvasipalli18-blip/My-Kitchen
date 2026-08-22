@@ -61,6 +61,50 @@
   cursor: pointer;
 }
 
+.food-preferences-card {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.food-preferences-card h2 {
+  margin: 0;
+}
+
+.food-preferences-form {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.food-preferences-form input {
+  flex: 1 1 16rem;
+}
+
+.avoided-food-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.avoided-food-list span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.45rem 0.35rem 0.65rem;
+  border: 1px solid #f1c798;
+  border-radius: 999px;
+  background: #fff8ef;
+  color: #7c3a00;
+  font-size: 0.85rem;
+}
+
+.avoided-food-list button {
+  padding: 0.25rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+}
+
 .kitchen-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -71,6 +115,48 @@
   padding: 1.25rem;
   display: grid;
   gap: 0.5rem;
+}
+
+.add-member-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
+
+.add-member-form label {
+  color: #475569;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.add-member-form > div {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
+.add-member-form input {
+  min-width: 0;
+  flex: 1;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid #d7dce5;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.8rem;
+}
+
+.add-member-form button {
+  padding: 0.55rem 0.7rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+
+.add-member-form .dashboard-error {
+  font-size: 0.75rem;
 }
 
 .kitchen-meta {

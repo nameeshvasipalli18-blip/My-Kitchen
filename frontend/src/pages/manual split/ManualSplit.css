@@ -10,6 +10,8 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  min-height: 100dvh;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .kitchen-split-header {
@@ -18,7 +20,7 @@ html, body {
   justify-content: space-between;
   min-height: 3.25rem;
   margin: 0.3rem 0.3rem 0;
-  padding: 0.5rem 1.5rem 0.5rem 2rem;
+  padding: 0.5rem 1.5rem 0.5rem 4rem;
   background-color: #ffffff;
   width: calc(100% - 0.6rem);
   box-sizing: border-box;
@@ -53,166 +55,211 @@ html, body {
   color: #73bb37;
 }
 
-.kitchens-navigation-button {
+.header-kitchen-account {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.header-kitchen-name {
+  max-width: 13rem;
+  overflow: hidden;
+  color: #427d1e;
+  font-size: 0.85rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-theme-toggle {
   display: grid;
   width: 2.25rem;
   height: 2.25rem;
   padding: 0;
   place-items: center;
   border: 1px solid #c8dcb9;
-  border-radius: 6px;
+  border-radius: 50%;
   background: #fbfff8;
   color: #427d1e;
-  font-size: 1.1rem;
   cursor: pointer;
+  transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease, transform 0.16s ease;
 }
 
-.kitchens-navigation-button:hover {
+.header-theme-toggle:hover,
+.header-theme-toggle:focus-visible {
+  border-color: #73bb37;
   background: #e6f2de;
-}
-.kitchen-split-body {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: start;
-  justify-items: stretch;
-  gap: 1.25rem;
-  padding: 0.5rem 1rem;
-  min-height: calc(100vh - 7rem);
+  outline: none;
+  transform: rotate(12deg);
 }
 
-.kitchen-split-body.menu-panel-open {
-  grid-template-columns: auto minmax(13rem, 18rem) minmax(0, 1fr);
-}
-
-.kitchen-split-body.menu-panel-open.participants-menu-open {
-  grid-template-columns: auto auto minmax(0, 1fr);
-}
-
-.kitchen-split-menu {
-  display: flex;
-  align-self: stretch;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 0.5rem;
-  padding: 0.75rem 0.5rem;
-  border-right: 1px solid #c8dcb9;
-  background: #f0f7ea;
-}
-
-.kitchen-menu-button {
-  display: flex;
+.header-account-menu {
   position: relative;
-  width: 2.75rem;
-  height: 2.75rem;
-  padding: 0;
+}
+
+.header-account-trigger {
+  display: flex;
+  min-height: 2.25rem;
+  padding: 0.3rem 0.55rem;
   align-items: center;
-  justify-content: center;
+  gap: 0.4rem;
   border: 1px solid #c8dcb9;
   border-radius: 6px;
   background: #fbfff8;
   color: #427d1e;
-  font-size: 1.2rem;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
   cursor: pointer;
-  overflow: hidden;
-  transition: width 0.2s ease, padding 0.2s ease;
 }
 
-.kitchen-menu-button:hover,
-.kitchen-menu-button:focus-visible,
-.kitchen-menu-button-active {
+.header-account-trigger:hover,
+.header-account-trigger:focus-visible {
   background: #e6f2de;
 }
 
-.kitchen-menu-button:hover,
-.kitchen-menu-button:focus-visible {
-  width: 9.5rem;
-  justify-content: flex-start;
-  gap: 0.5rem;
-  padding: 0 0.75rem;
+.header-account-icon {
+  font-size: 1.3rem;
 }
 
-.kitchen-menu-label {
-  display: none;
+.header-account-name {
+  max-width: 10rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.header-account-chevron {
+  font-size: 0.65rem;
+  transition: transform 0.16s ease;
+}
+
+.header-account-chevron-open {
+  transform: rotate(180deg);
+}
+
+.header-account-dropdown {
+  display: grid;
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 0.35rem);
+  right: 0;
+  min-width: 10.5rem;
+  padding: 0.35rem;
+  border: 1px solid #c8dcb9;
+  border-radius: 6px;
+  background: #ffffff;
+  box-shadow: 0 8px 18px rgba(36, 70, 21, 0.16);
+}
+
+.header-account-dropdown button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.55rem 0.65rem;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #244615;
+  font: inherit;
   font-size: 0.75rem;
   font-weight: 700;
+  text-align: left;
+  cursor: pointer;
 }
 
-.kitchen-menu-button:hover .kitchen-menu-label,
-.kitchen-menu-button:focus-visible .kitchen-menu-label {
-  display: inline;
+.header-account-dropdown button:hover,
+.header-account-dropdown button:focus-visible {
+  background: #e6f2de;
 }
 
-.kitchen-menu-button:disabled {
-  cursor: wait;
-  opacity: 0.65;
+.header-account-dropdown .header-account-logout {
+  color: #8c1d1d;
+}
+.header-account-members {
+  display: grid;
+  gap: 0.35rem;
+  max-height: 11rem;
+  padding: 0.55rem 0.65rem;
+  overflow-y: auto;
+  border-top: 1px solid #e1ead9;
+  border-bottom: 1px solid #e1ead9;
 }
 
-.kitchen-split-menu-panel {
-  min-width: 0;
+.header-account-members-label {
+  color: #427d1e;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
-@keyframes participantsPanelSlideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-1.25rem);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+.header-account-members ul {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.participants-menu-panel {
-  animation: participantsPanelSlideIn 0.25s ease-out;
+.header-account-members li,
+.header-account-members-empty {
+  overflow: hidden;
+  color: #244615;
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-@keyframes participantsPanelSlideOut {
-  from {
-    opacity: 1;
-    transform: translateX(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateX(-1.25rem);
-  }
+.header-account-members-empty {
+  color: #6f8164;
 }
 
-.participants-menu-panel.participants-menu-panel-closing {
-  animation: participantsPanelSlideOut 0.25s ease-in forwards;
-  pointer-events: none;
+.enter-bills-menu {
+  display: flex;
+  position: fixed;
+  z-index: 19;
+  top: 0.7rem;
+  left: 0.75rem;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0;
+  background: transparent;
 }
 
-@keyframes billsPanelSlideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-1.25rem);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+.enter-bills-menu-content,
+.enter-bills-menu-options {
+  display: grid;
+  gap: 0.5rem;
 }
 
-.bills-menu-panel {
-  animation: billsPanelSlideIn 0.25s ease-out;
+.enter-bills-menu-toggle {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  place-items: center;
+  border: 1px solid #c8dcb9;
+  border-radius: 6px;
+  background: #fbfff8;
+  color: #427d1e;
+  font-size: 1.05rem;
+  cursor: pointer;
 }
 
-@keyframes billsPanelSlideOut {
-  from {
-    opacity: 1;
-    transform: translateX(0);
-  }
-  to {
-    opacity: 0;
-    transform: translateX(-1.25rem);
-  }
+.enter-bills-menu-toggle:hover,
+.enter-bills-menu-toggle:focus-visible {
+  border-color: #73bb37;
+  background: #e6f2de;
+  outline: none;
 }
 
-.bills-menu-panel.bills-menu-panel-closing {
-  animation: billsPanelSlideOut 0.25s ease-in forwards;
-  pointer-events: none;
+.kitchen-split-body {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  padding: 0.5rem 1rem;
 }
 
 .kitchen-split-content {
@@ -220,6 +267,127 @@ html, body {
   flex-direction: column;
   gap: 1rem;
   min-width: 0;
+}
+
+.kitchen-window-navigation {
+  display: flex;
+  position: fixed;
+  z-index: 20;
+  bottom: 0;
+  left: 50%;
+  width: min(100% - 2rem, 36rem);
+  padding: 0.45rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border: 1px solid #c8dcb9;
+  border-bottom: 0;
+  border-radius: 8px 8px 0 0;
+  background: #ffffff;
+  box-shadow: 0 -3px 14px rgba(36, 70, 21, 0.14);
+  transform: translate(-50%, calc(100% - 0.55rem));
+  transition: transform 0.2s ease;
+}
+
+.kitchen-window-navigation:hover,
+.kitchen-window-navigation:focus-within {
+  transform: translate(-50%, 0);
+}
+
+.kitchen-window-button {
+  display: inline-flex;
+  min-width: 0;
+  padding: 0.55rem 0.8rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: #427d1e;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.kitchen-window-button:hover,
+.kitchen-window-button:focus-visible,
+.kitchen-window-button-active {
+  border-color: #c8dcb9;
+  background: #e6f2de;
+}
+
+@media (max-width: 700px) {
+  html,
+  body {
+    font-size: 16px;
+  }
+
+  .kitchen-split-container {
+    gap: 0.25rem;
+  }
+
+  .kitchen-split-header {
+    min-height: 2.9rem;
+    margin: 0.25rem 0.25rem 0;
+    padding: 0.35rem 0.55rem 0.35rem 3.35rem;
+    width: calc(100% - 0.5rem);
+  }
+
+  .kitchen-split-logo-kitchen,
+  .kitchen-split-logo-split {
+    padding: 0.25rem 0.35rem;
+  }
+
+  .header-kitchen-account {
+    gap: 0.35rem;
+  }
+
+  .header-kitchen-name {
+    max-width: 5rem;
+    font-size: 0.7rem;
+  }
+
+  .header-theme-toggle {
+    width: 2rem;
+    height: 2rem;
+  }
+
+  .header-account-trigger {
+    min-height: 2rem;
+    padding: 0.25rem 0.35rem;
+  }
+
+  .header-account-name {
+    max-width: 4.5rem;
+  }
+
+  .header-account-icon {
+    font-size: 1.1rem;
+  }
+
+  .enter-bills-menu {
+    top: 0.45rem;
+    left: 0.45rem;
+  }
+
+  .kitchen-split-body {
+    padding: 0.35rem 0.5rem;
+  }
+
+  .kitchen-window-navigation {
+    width: calc(100% - 1rem);
+    padding: 0.3rem;
+    gap: 0.2rem;
+  }
+
+  .kitchen-window-button {
+    flex: 1;
+    padding: 0.4rem 0.25rem;
+    gap: 0.25rem;
+    font-size: 0.65rem;
+  }
 }
 
 .split-results {
@@ -268,6 +436,94 @@ html, body {
 
 .download-receipt-button:hover {
   background: #ffffff;
+}
+
+.kitchen-split-dark {
+  background: #152015;
+  color: #e8f2e4;
+}
+
+.kitchen-split-dark .kitchen-split-header,
+.kitchen-split-dark .active-bill-card,
+.kitchen-split-dark .item-entry-card,
+.kitchen-split-dark .enter-bills-recent,
+.kitchen-split-dark .kitchen-window-navigation,
+.kitchen-split-dark .split-results,
+.kitchen-split-dark .header-account-dropdown,
+.kitchen-split-dark .active-bill-inline-options {
+  border-color: #41613b;
+  background: #1f2e20;
+  color: #e8f2e4;
+}
+
+.kitchen-split-dark .kitchen-split-logo-split,
+.kitchen-split-dark .header-theme-toggle,
+.kitchen-split-dark .header-account-trigger,
+.kitchen-split-dark .active-bill-item-actions button,
+.kitchen-split-dark .active-bill-inline-actions button,
+.kitchen-split-dark .item-entry-row button,
+.kitchen-split-dark .item-entry-row input,
+.kitchen-split-dark .item-entry-options-panel select,
+.kitchen-split-dark .active-bill-item-edit-form > input,
+.kitchen-split-dark .active-bill-inline-options select {
+  border-color: #41613b;
+  background: #273a28;
+  color: #e8f2e4;
+}
+
+.kitchen-split-dark .header-kitchen-name,
+.kitchen-split-dark .header-account-trigger,
+.kitchen-split-dark .header-theme-toggle,
+.kitchen-split-dark .kitchen-window-button,
+.kitchen-split-dark .active-bill-item,
+.kitchen-split-dark .enter-bills-recent h2,
+.kitchen-split-dark .enter-bills-recent p,
+.kitchen-split-dark .header-account-dropdown button,
+.kitchen-split-dark .header-account-members li,
+.kitchen-split-dark .header-account-members-empty {
+  color: #d8ead2;
+}
+
+.kitchen-split-dark .active-bill-item,
+.kitchen-split-dark .active-bill-header,
+.kitchen-split-dark .active-bill-footer,
+.kitchen-split-dark .header-account-members {
+  border-color: #365137;
+}
+
+.kitchen-split-dark .active-bill-header {
+  background: #192919;
+}
+
+.kitchen-split-dark .active-bill-header label {
+  background: #273a28;
+  color: #c8ddc2;
+}
+
+.kitchen-split-dark .active-bill-header input {
+  background: #3f7431;
+  color: #f2fff0;
+  border-bottom-color: transparent;
+}
+
+.kitchen-split-dark .active-bill-header input:hover,
+.kitchen-split-dark .active-bill-header input:focus {
+  border-bottom-color: #d8ead2;
+}
+
+.kitchen-split-dark .active-bill-header input::-webkit-calendar-picker-indicator {
+  filter: brightness(0) invert(1);
+}
+
+.kitchen-split-dark .active-bill-item:hover,
+.kitchen-split-dark .active-bill-item:focus-within,
+.kitchen-split-dark .active-bill-item-editing,
+.kitchen-split-dark .header-account-trigger:hover,
+.kitchen-split-dark .header-account-trigger:focus-visible,
+.kitchen-split-dark .kitchen-window-button:hover,
+.kitchen-split-dark .kitchen-window-button:focus-visible,
+.kitchen-split-dark .kitchen-window-button-active {
+  background: #314a31;
 }
 
 .split-month-picker {

@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import ClassVar
 
-from sqlalchemy import UniqueConstraint
+from sqlalchemy import Column, String, UniqueConstraint
 from sqlmodel import Field, SQLModel
 
 
@@ -19,6 +19,7 @@ class UserTable(SQLModel, table=True):
     username: str = Field(index=True, unique=True)
     password_hash: str
     is_active: bool = Field(default=True)
+    avoided_foods: str = Field(default="[]", sa_column=Column(String, nullable=False, server_default="[]"))
     created_at: datetime = Field(default_factory=utc_now)
     updated_at: datetime = Field(default_factory=utc_now)
 

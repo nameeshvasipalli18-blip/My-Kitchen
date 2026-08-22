@@ -52,7 +52,7 @@ export const RecentTrips = ({ participants, shoppingTrips, newlySavedTripId, onE
       </button>}
       {billsVisible && (
       <div className="recent-trips-container">
-        <h2>Recent bills</h2>
+        <h2>Saved bills</h2>
       <div className="recent-trips-controls">
         <form
           className="recent-trips-search"

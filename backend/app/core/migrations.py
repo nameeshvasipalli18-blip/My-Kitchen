@@ -28,8 +28,16 @@ def _initial_schema() -> None:
     SQLModel.metadata.create_all(engine)
 
 
+def _add_user_avoided_foods() -> None:
+    with engine.begin() as connection:
+        columns = {row[1] for row in connection.execute(text("PRAGMA table_info(users)"))}
+        if "avoided_foods" not in columns:
+            connection.execute(text("ALTER TABLE users ADD COLUMN avoided_foods TEXT NOT NULL DEFAULT '[]'"))
+
+
 MIGRATIONS: list[Migration] = [
     ("0001_initial_app_schema", _initial_schema),
+    ("0002_user_avoided_foods", _add_user_avoided_foods),
 ]
 
 
