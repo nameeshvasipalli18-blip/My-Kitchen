@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const TOKEN_KEY = 'my-kitchen-auth-token';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 export const getStoredToken = () => window.localStorage.getItem(TOKEN_KEY);
 
@@ -13,7 +14,7 @@ export const persistStoredToken = (token) => {
 };
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE_URL,
 });
 
 api.interceptors.request.use((config) => {
