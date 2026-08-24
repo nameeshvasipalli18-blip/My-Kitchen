@@ -5,7 +5,7 @@ from collections.abc import Callable
 from sqlalchemy import text
 from sqlmodel import SQLModel
 
-from app.core.db import engine
+from app.core.db import engine, is_sqlite
 
 Migration = tuple[str, Callable[[], None]]
 
@@ -29,6 +29,8 @@ def _initial_schema() -> None:
 
 
 def _add_user_avoided_foods() -> None:
+    if not is_sqlite:
+        return
     with engine.begin() as connection:
         columns = {row[1] for row in connection.execute(text("PRAGMA table_info(users)"))}
         if "avoided_foods" not in columns:
