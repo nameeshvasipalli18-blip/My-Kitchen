@@ -270,6 +270,14 @@
   outline: none;
 }
 
+.session-bills-updating .session-bills-trigger {
+  animation: savedBillsReceiptPulse 0.46s ease-out;
+}
+
+.session-bills-updating .session-bills-count {
+  animation: savedBillsCountPop 0.42s 0.22s both;
+}
+
 .session-bills-tooltip {
   position: absolute;
   top: 50%;
@@ -313,6 +321,26 @@
   font-size: 0.65rem;
   font-weight: 700;
   line-height: 1;
+}
+
+@keyframes savedBillsReceiptPulse {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.2) rotate(-8deg); }
+  72% { transform: scale(0.95) rotate(5deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+@keyframes savedBillsCountPop {
+  0% { opacity: 0; transform: scale(0.45); }
+  68% { opacity: 1; transform: scale(1.24); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .session-bills-updating .session-bills-trigger,
+  .session-bills-updating .session-bills-count {
+    animation: none;
+  }
 }
 
 .session-bills-popover {
@@ -865,7 +893,7 @@
 
 .item-entry-row {
   display: grid;
-  grid-template-columns: minmax(12rem, 1fr) 5.5rem auto auto;
+  grid-template-columns: minmax(12rem, 1fr) 5.5rem auto auto auto;
   gap: 0.45rem;
   transition: transform 0.2s ease;
 }
@@ -882,6 +910,16 @@
   border-radius: 5px;
   font: inherit;
   font-size: 0.8rem;
+}
+
+.receipt-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .item-entry-card:hover,
@@ -1024,7 +1062,7 @@
   }
 
   .item-entry-row {
-    grid-template-columns: minmax(0, 1fr) 4rem auto auto;
+    grid-template-columns: minmax(0, 1fr) 4rem auto auto auto;
     gap: 0.3rem;
   }
 
