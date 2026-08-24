@@ -40,6 +40,7 @@ const Login = () => {
             Password
             <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} />
           </label>
+          <Link className="auth-inline-link" to="/forgot-password">Forgot password?</Link>
           {error && <p className="auth-error">{error}</p>}
           <button type="submit">Log in</button>
         </form>

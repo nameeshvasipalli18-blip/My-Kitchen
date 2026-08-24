@@ -2,6 +2,8 @@ import { Routes, Route } from 'react-router-dom';
 import Home from '../pages/home page/Home.jsx';
 import Login from '../pages/auth/Login.jsx';
 import Register from '../pages/auth/Register.jsx';
+import ForgotPassword from '../pages/auth/ForgotPassword.jsx';
+import ResetPassword from '../pages/auth/ResetPassword.jsx';
 import Dashboard from '../pages/dashboard/Dashboard.jsx';
 import ManualSplit from '../pages/manual split/ManualSplit.jsx';
 import ProtectedRoute from '../components/auth/ProtectedRoute.jsx';
@@ -13,6 +15,8 @@ const App = () => {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/manual-split/:kitchenId" element={<ManualSplit />} />

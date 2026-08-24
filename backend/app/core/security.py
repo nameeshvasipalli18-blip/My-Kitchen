@@ -6,6 +6,7 @@ import secrets
 from datetime import datetime, timedelta, timezone
 
 TOKEN_TTL_HOURS = 24 * 14
+PASSWORD_RESET_TOKEN_TTL_MINUTES = 30
 PBKDF2_ITERATIONS = 120_000
 
 
@@ -36,6 +37,13 @@ def create_access_token() -> tuple[str, str, datetime]:
     token = secrets.token_urlsafe(32)
     token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
     expires_at = datetime.now(timezone.utc) + timedelta(hours=TOKEN_TTL_HOURS)
+    return token, token_hash, expires_at
+
+
+def create_password_reset_token() -> tuple[str, str, datetime]:
+    token = secrets.token_urlsafe(32)
+    token_hash = hashlib.sha256(token.encode("utf-8")).hexdigest()
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=PASSWORD_RESET_TOKEN_TTL_MINUTES)
     return token, token_hash, expires_at
 
 

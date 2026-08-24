@@ -35,9 +35,14 @@ def _add_user_avoided_foods() -> None:
             connection.execute(text("ALTER TABLE users ADD COLUMN avoided_foods TEXT NOT NULL DEFAULT '[]'"))
 
 
+def _add_password_reset_tokens() -> None:
+    SQLModel.metadata.create_all(engine)
+
+
 MIGRATIONS: list[Migration] = [
     ("0001_initial_app_schema", _initial_schema),
     ("0002_user_avoided_foods", _add_user_avoided_foods),
+    ("0003_password_reset_tokens", _add_password_reset_tokens),
 ]
 
 

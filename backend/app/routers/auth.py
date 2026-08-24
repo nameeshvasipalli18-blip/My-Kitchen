@@ -1,22 +1,35 @@
 from __future__ import annotations
 
 import json
+import smtplib
+
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlmodel import Session, or_, select
 
 from app.core.db import get_session
 from app.core.dependencies import get_current_user
+from app.core.email import is_password_reset_email_configured, send_password_reset_email
 from app.core.security import (
     create_access_token,
+    create_password_reset_token,
     hash_password,
     hash_token,
     normalize_email,
     normalize_username,
     verify_password,
 )
-from app.models import AuthTokenTable, UserTable, utc_now
-from app.schemas.auth import AvoidedFoodsUpdateRequest, AuthResponse, LoginRequest, RegisterRequest, UserResponse
+from app.models import AuthTokenTable, PasswordResetTokenTable, UserTable, utc_now
+from app.schemas.auth import (
+    AvoidedFoodsUpdateRequest,
+    AuthResponse,
+    ForgotPasswordRequest,
+    LoginRequest,
+    RegisterRequest,
+    ResetPasswordRequest,
+    UserResponse,
+)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -70,6 +83,74 @@ def login(data: LoginRequest, session: Session = Depends(get_session)):
     session.add(AuthTokenTable(user_id=user.id, token_hash=token_hash, expires_at=expires_at))
     session.commit()
     return AuthResponse(token=token, user=serialize_user(user))
+
+
+@router.post("/forgot-password")
+def forgot_password(data: ForgotPasswordRequest, session: Session = Depends(get_session)):
+    if not is_password_reset_email_configured():
+        raise HTTPException(status_code=503, detail="Password reset email is not configured")
+
+    email = normalize_email(data.email)
+    user = session.exec(select(UserTable).where(UserTable.email == email)).first()
+    if user and user.is_active:
+        for reset_token in session.exec(
+            select(PasswordResetTokenTable).where(
+                PasswordResetTokenTable.user_id == user.id,
+                PasswordResetTokenTable.used_at.is_(None),
+            )
+        ):
+            reset_token.used_at = utc_now()
+            session.add(reset_token)
+
+        token, token_hash, expires_at = create_password_reset_token()
+        session.add(
+            PasswordResetTokenTable(
+                user_id=user.id,
+                token_hash=token_hash,
+                expires_at=expires_at,
+            )
+        )
+        session.commit()
+        try:
+            send_password_reset_email(user.email, token)
+        except (OSError, smtplib.SMTPException) as error:
+            raise HTTPException(status_code=503, detail="Unable to send password reset email") from error
+
+    return {"message": "If an account exists for that email, a password reset link has been sent."}
+
+
+@router.post("/reset-password")
+def reset_password(data: ResetPasswordRequest, session: Session = Depends(get_session)):
+    reset_token = session.exec(
+        select(PasswordResetTokenTable).where(PasswordResetTokenTable.token_hash == hash_token(data.token))
+    ).first()
+    now = datetime.now(timezone.utc)
+    if (
+        not reset_token
+        or reset_token.used_at is not None
+        or reset_token.expires_at.replace(tzinfo=timezone.utc) <= now
+    ):
+        raise HTTPException(status_code=400, detail="This password reset link is invalid or has expired")
+
+    user = session.get(UserTable, reset_token.user_id)
+    if not user or not user.is_active:
+        raise HTTPException(status_code=400, detail="This password reset link is invalid or has expired")
+
+    user.password_hash = hash_password(data.password)
+    user.updated_at = utc_now()
+    reset_token.used_at = utc_now()
+    for auth_token in session.exec(
+        select(AuthTokenTable).where(
+            AuthTokenTable.user_id == user.id,
+            AuthTokenTable.revoked_at.is_(None),
+        )
+    ):
+        auth_token.revoked_at = utc_now()
+        session.add(auth_token)
+    session.add(user)
+    session.add(reset_token)
+    session.commit()
+    return {"message": "Your password has been reset. Please log in."}
 
 
 @router.post("/logout")

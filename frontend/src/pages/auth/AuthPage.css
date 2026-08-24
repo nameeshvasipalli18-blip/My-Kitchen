@@ -55,7 +55,17 @@
   font-weight: 600;
 }
 
+.auth-inline-link {
+  justify-self: end;
+  font-size: 0.9rem;
+}
+
 .auth-error {
   color: #b91c1c;
+  font-weight: 600;
+}
+
+.auth-success {
+  color: #166534;
   font-weight: 600;
 }

@@ -3,4 +3,6 @@ backend/venv/
 *.py[cod]
 backend/database.db
 node_modules/
+.env
+backend/.env
 node_modules

@@ -35,6 +35,17 @@ class AuthTokenTable(SQLModel, table=True):
     revoked_at: datetime | None = Field(default=None)
 
 
+class PasswordResetTokenTable(SQLModel, table=True):
+    __tablename__: ClassVar[str] = "password_reset_tokens"
+
+    id: int | None = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="users.id", index=True)
+    token_hash: str = Field(index=True, unique=True)
+    created_at: datetime = Field(default_factory=utc_now)
+    expires_at: datetime
+    used_at: datetime | None = Field(default=None)
+
+
 class KitchenTable(SQLModel, table=True):
     __tablename__: ClassVar[str] = "kitchens"
 
