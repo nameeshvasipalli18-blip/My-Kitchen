@@ -11,6 +11,8 @@ html, body {
   flex-direction: column;
   gap: 0.5rem;
   min-height: 100dvh;
+  --kitchen-window-nav-height: 0px;
+  --kitchen-window-nav-gap: 0px;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
@@ -502,6 +504,12 @@ html, body {
 
   .kitchen-split-container {
     gap: 0.25rem;
+    --kitchen-window-nav-safe-area: env(safe-area-inset-bottom, 0px);
+    --kitchen-window-nav-button-height: 2.65rem;
+    --kitchen-window-nav-padding-top: 0.4rem;
+    --kitchen-window-nav-padding-bottom: 0.4rem;
+    --kitchen-window-nav-height: calc(var(--kitchen-window-nav-button-height) + var(--kitchen-window-nav-padding-top) + var(--kitchen-window-nav-padding-bottom) + var(--kitchen-window-nav-safe-area));
+    --kitchen-window-nav-gap: 0.45rem;
   }
 
   .kitchen-split-header {
@@ -549,7 +557,7 @@ html, body {
   }
 
   .kitchen-split-body {
-    padding: 0.35rem 0.5rem 4.75rem;
+    padding: 0.35rem 0.5rem calc(var(--kitchen-window-nav-height) + var(--kitchen-window-nav-gap));
   }
 
   .kitchen-window-navigation {
@@ -569,6 +577,13 @@ html, body {
 }
 
 @media (max-width: 700px) and (max-height: 520px) {
+  .kitchen-split-container {
+    --kitchen-window-nav-button-height: 2.25rem;
+    --kitchen-window-nav-padding-top: 0.2rem;
+    --kitchen-window-nav-padding-bottom: 0.2rem;
+    --kitchen-window-nav-gap: 0.35rem;
+  }
+
   .kitchen-split-header {
     min-height: 2.45rem;
     padding-top: 0.2rem;
@@ -577,7 +592,7 @@ html, body {
 
   .kitchen-split-body {
     padding-top: 0.2rem;
-    padding-bottom: 3.6rem;
+    padding-bottom: calc(var(--kitchen-window-nav-height) + var(--kitchen-window-nav-gap));
     overflow-y: auto;
   }
 
