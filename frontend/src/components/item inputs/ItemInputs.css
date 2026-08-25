@@ -341,6 +341,16 @@
   .session-bills-updating .session-bills-count {
     animation: none;
   }
+
+  .item-entry-card {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+  }
+
+  .item-entry-card:hover,
+  .item-entry-card:focus,
+  .item-entry-card:focus-within {
+    transform: translateX(-50%);
+  }
 }
 
 .session-bills-popover {
@@ -925,7 +935,7 @@
 .item-entry-card:hover,
 .item-entry-card:focus,
 .item-entry-card:focus-within {
-  border-color: grey;
+  border-color: #73bb37;
   box-shadow: 0 8px 18px rgba(36, 70, 21, 0.16);
   outline: none;
   transform: translate(-50%, -0.5rem) scale(1.02);
@@ -1058,23 +1068,27 @@
   .item-entry-card:hover,
   .item-entry-card:focus,
   .item-entry-card:focus-within {
-    transform: translate(-50%, -0.5rem) scale(1.02);
+    border-color: #73bb37;
+    box-shadow: 0 6px 18px rgba(36, 70, 21, 0.14);
+    transform: translate(-50%, -2px) scale(1.01);
   }
 
   .item-entry-row {
-    grid-template-columns: minmax(0, 1fr) 4rem auto auto auto;
+    grid-template-columns: minmax(0, 1fr) 5rem 48px 48px 48px;
     gap: 0.3rem;
   }
 
   .item-entry-row input,
   .item-entry-options-panel select {
-    padding: 0.4rem;
-    font-size: 0.75rem;
+    padding: 0.4rem 0.5rem;
+    font-size: 16px;
+    min-height: 48px;
+    box-sizing: border-box;
   }
 
   .item-entry-row button {
-    width: 1.8rem;
-    height: 1.8rem;
+    width: 48px;
+    height: 48px;
   }
 
   .active-bill-header,

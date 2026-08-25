@@ -44,6 +44,7 @@ export const EnterBillsWorkspace = ({ kitchenId, initialInputs, shoppingTrip, se
   const [newItemIndex, setNewItemIndex] = useState(null);
   const [isBillScrollActive, setIsBillScrollActive] = useState(false);
   const [isItemNameFocused, setIsItemNameFocused] = useState(false);
+  const [isItemPriceFocused, setIsItemPriceFocused] = useState(false);
   const [scannedItems, setScannedItems] = useState([]);
   const [scanResult, setScanResult] = useState(null);
   const [isScanningReceipt, setIsScanningReceipt] = useState(false);
@@ -400,7 +401,7 @@ export const EnterBillsWorkspace = ({ kitchenId, initialInputs, shoppingTrip, se
           <label><span>Store</span><input value={shoppingTrip.store} onChange={(event) => setShoppingTrip((trip) => ({ ...trip, store: event.target.value }))} /></label>
         </header>
         <div className={`active-bill-body${isCancellingInlineEdit ? ' active-bill-body-transitioning' : ''}${isBillScrollActive ? ' active-bill-body-scroll-active' : ''}`} ref={activeBillBodyRef} aria-busy={isCancellingInlineEdit} onChangeCapture={(event) => event.target.closest('.active-bill-item') && triggerBillGlow()}>
-          {shoppingTrip.items.length === 0 ? <AnimatePresence initial={false}>{!isDraftingItem && !isItemNameFocused && <motion.button className="active-bill-empty" type="button" onClick={focusItemNameInput} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.16 }}>Add an item</motion.button>}</AnimatePresence> : shoppingTrip.items.map((activeItem, index) => (
+          {shoppingTrip.items.length === 0 ? <AnimatePresence initial={false}>{!isDraftingItem && !isItemNameFocused && !isItemPriceFocused && <motion.button className="active-bill-empty" type="button" onClick={focusItemNameInput} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.16 }}>Add an item</motion.button>}</AnimatePresence> : shoppingTrip.items.map((activeItem, index) => (
             <motion.article layout="size" className={`active-bill-item${inlineEditingIndex === index ? ' active-bill-item-editing' : ''}`} key={`${activeItem.name}-${index}`} initial={newItemIndex === index ? { opacity: 0, scale: 0.72, y: -10 } : false} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ layout: { duration: 0.28, ease: 'easeOut' }, default: { type: 'spring', stiffness: 420, damping: 22 } }}>
               {inlineEditingIndex === index ? <div className="active-bill-item-edit-form" onKeyDown={handleInlineEditArrowNavigation}>
                 <input ref={(node) => { inlineItemNameInputRef.current = node; if (node && shouldFocusInlineItemNameRef.current) { node.focus(); shouldFocusInlineItemNameRef.current = false; } }} data-inline-edit-control aria-label="Item name" value={inlineItem.name} onChange={(event) => setInlineItem((currentItem) => ({ ...currentItem, name: event.target.value }))} />
@@ -427,7 +428,7 @@ export const EnterBillsWorkspace = ({ kitchenId, initialInputs, shoppingTrip, se
         <motion.div className="item-entry-card-wobble" animate={entryCardControls}>
         <div className={`item-entry-row${optionsOpen ? ' item-entry-row-options-open' : ''}`}>
           <input ref={itemNameInputRef} data-item-entry-control aria-label="Item name" placeholder="Item name" value={item.name} onFocus={() => setIsItemNameFocused(true)} onBlur={() => setIsItemNameFocused(false)} onChange={(event) => setItem((currentItem) => ({ ...currentItem, name: event.target.value }))} />
-          <input data-item-entry-control aria-label="Item price" placeholder="0.00" inputMode="decimal" value={item.price} onChange={(event) => setItem((currentItem) => ({ ...currentItem, price: event.target.value }))} onKeyDown={(event) => event.key === 'Enter' && addItem()} />
+          <input data-item-entry-control aria-label="Item price" placeholder="0.00" inputMode="decimal" value={item.price} onFocus={() => setIsItemPriceFocused(true)} onBlur={() => setIsItemPriceFocused(false)} onChange={(event) => setItem((currentItem) => ({ ...currentItem, price: event.target.value }))} onKeyDown={(event) => event.key === 'Enter' && addItem()} />
           <motion.button ref={addItemButtonRef} data-item-entry-control className="item-entry-add" type="button" title="Add item" disabled={Boolean(launchingItem)} onClick={addItem} animate={launchingItem ? { rotate: 360, scale: [1, 1.12, 1] } : { rotate: 0, scale: 1 }} transition={launchingItem ? { duration: 0.55, ease: 'easeInOut' } : { duration: 0 }}><FaPlus aria-hidden="true" /></motion.button>
           <button data-item-entry-control type="button" title={isScanningReceipt ? 'Scanning e-bill' : 'Upload e-bill'} aria-label={isScanningReceipt ? 'Scanning e-bill' : 'Upload e-bill'} disabled={isScanningReceipt} onClick={openReceiptPicker}><FaFileArrowUp aria-hidden="true" /></button>
           <button data-item-entry-control className="item-entry-options" type="button" title="Custom split options" aria-expanded={optionsOpen} onClick={() => setOptionsOpen((open) => !open)}><FaEllipsis aria-hidden="true" /></button>
