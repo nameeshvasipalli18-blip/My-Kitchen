@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
+import { FaChevronDown, FaCircleUser, FaMoon, FaSun } from 'react-icons/fa6';
 import api from '../../api.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import './Dashboard.css';
@@ -15,6 +17,8 @@ const Dashboard = () => {
   const [avoidedFoods, setAvoidedFoods] = useState([]);
   const [foodPreferenceError, setFoodPreferenceError] = useState('');
   const [error, setError] = useState('');
+  const [darkMode, setDarkMode] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
 
   const loadKitchens = async () => {
     try {
@@ -84,16 +88,45 @@ const Dashboard = () => {
     await saveAvoidedFoods([...avoidedFoods, food]);
   };
 
+  const handleLogout = async () => {
+    setAccountMenuOpen(false);
+    await logout();
+    navigate('/login');
+  };
+
   return (
-    <div className="dashboard-page">
-      <div className="dashboard-shell">
-        <header className="dashboard-header">
-          <div>
-            <h1>Hello, {user?.username}</h1>
-            <p>Choose a kitchen or create a new shared space.</p>
+    <div className={`dashboard-page${darkMode ? ' dashboard-dark' : ''}`}>
+      <motion.header className="dashboard-header" initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}>
+        <p className="dashboard-logo">
+          <span className="dashboard-logo-kitchen">Kitchen</span>
+          <span className="dashboard-logo-split">Split</span>
+        </p>
+        <div className="dashboard-header-account">
+          <span className="dashboard-kitchen-name">My kitchens</span>
+          <button className="dashboard-theme-toggle" type="button" title={darkMode ? 'Use light mode' : 'Use dark mode'} aria-label={darkMode ? 'Use light mode' : 'Use dark mode'} aria-pressed={darkMode} onClick={() => setDarkMode((enabled) => !enabled)}>
+            {darkMode ? <FaSun aria-hidden="true" /> : <FaMoon aria-hidden="true" />}
+          </button>
+          <div className="dashboard-account-menu">
+            <motion.button className="dashboard-account-trigger" type="button" aria-expanded={accountMenuOpen} aria-controls="dashboard-account-dropdown" onClick={() => setAccountMenuOpen((isOpen) => !isOpen)} whileTap={{ scale: 0.97 }}>
+              <FaCircleUser className="dashboard-account-icon" aria-hidden="true" />
+              <span className="dashboard-account-name">{user?.username || 'Account'}</span>
+              <FaChevronDown className={`dashboard-account-chevron${accountMenuOpen ? ' dashboard-account-chevron-open' : ''}`} aria-hidden="true" />
+            </motion.button>
+            <AnimatePresence>
+              {accountMenuOpen && (
+                <motion.div id="dashboard-account-dropdown" className="dashboard-account-dropdown" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.16 }}>
+                  <button className="dashboard-account-logout" type="button" onClick={handleLogout}>Log out</button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-          <button type="button" onClick={logout}>Log out</button>
-        </header>
+        </div>
+      </motion.header>
+      <div className="dashboard-shell">
+        <section className="dashboard-intro">
+          <h1>Hello, {user?.username}</h1>
+          <p>Choose a kitchen or create a new shared space.</p>
+        </section>
 
         <section className="dashboard-card">
           <h2>Create a kitchen</h2>

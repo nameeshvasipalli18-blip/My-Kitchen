@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
+import AuthShell from './AuthShell.jsx';
 import './AuthPage.css';
 
 const Login = () => {
@@ -27,7 +28,7 @@ const Login = () => {
   };
 
   return (
-    <div className="auth-page">
+    <AuthShell>
       <div className="auth-card">
         <h1>Welcome back</h1>
         <p>Log in to manage your kitchens and shared bills.</p>
@@ -48,7 +49,7 @@ const Login = () => {
           Need an account? <Link to="/register">Create one</Link>
         </p>
       </div>
-    </div>
+    </AuthShell>
   );
 };
 

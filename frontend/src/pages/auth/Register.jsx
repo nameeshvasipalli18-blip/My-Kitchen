@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
+import AuthShell from './AuthShell.jsx';
 import './AuthPage.css';
 
 const Register = () => {
@@ -24,7 +25,7 @@ const Register = () => {
   };
 
   return (
-    <div className="auth-page">
+    <AuthShell>
       <div className="auth-card">
         <h1>Create account</h1>
         <p>Register once, then join or create kitchens for shared bills.</p>
@@ -48,7 +49,7 @@ const Register = () => {
           Already registered? <Link to="/login">Log in</Link>
         </p>
       </div>
-    </div>
+    </AuthShell>
   );
 };
 

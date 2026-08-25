@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../../api.js';
+import AuthShell from './AuthShell.jsx';
 import './AuthPage.css';
 
 const ForgotPassword = () => {
@@ -20,7 +21,7 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="auth-page">
+    <AuthShell>
       <div className="auth-card">
         <h1>Reset your password</h1>
         <p>Enter your email and we will send a secure reset link.</p>
@@ -35,7 +36,7 @@ const ForgotPassword = () => {
         </form>
         <p>Remembered it? <Link to="/login">Log in</Link></p>
       </div>
-    </div>
+    </AuthShell>
   );
 };
 

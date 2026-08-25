@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import api from '../../api.js';
+import AuthShell from './AuthShell.jsx';
 import './AuthPage.css';
 
 const ResetPassword = () => {
@@ -31,7 +32,7 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="auth-page">
+    <AuthShell>
       <div className="auth-card">
         <h1>Choose a new password</h1>
         <p>Your new password must be at least 8 characters.</p>
@@ -50,7 +51,7 @@ const ResetPassword = () => {
         </form>
         <p><Link to="/login">Back to log in</Link></p>
       </div>
-    </div>
+    </AuthShell>
   );
 };
 
