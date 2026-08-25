@@ -1063,7 +1063,7 @@
 
   .item-entry-card {
     position: fixed;
-    bottom: calc(env(safe-area-inset-bottom, 0.5rem) + 0.5rem);
+    bottom: calc(var(--kitchen-window-nav-height, 0px) + var(--kitchen-window-nav-gap, 0.5rem));
     left: 50%;
     padding: 0.45rem;
     width: min(calc(100% - 1rem), 30rem);
@@ -1111,7 +1111,7 @@
   }
 
   .active-bill-body {
-    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0.5rem));
+    padding-bottom: max(0.5rem, calc(var(--item-entry-bottom-offset, 0px) + 0.45rem));
   }
 
   .active-bill-item {
