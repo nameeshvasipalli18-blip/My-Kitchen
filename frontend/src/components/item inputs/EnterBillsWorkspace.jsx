@@ -429,9 +429,11 @@ export const EnterBillsWorkspace = ({ kitchenId, initialInputs, shoppingTrip, se
         <div className={`item-entry-row${optionsOpen ? ' item-entry-row-options-open' : ''}`}>
           <input ref={itemNameInputRef} data-item-entry-control aria-label="Item name" placeholder="Item name" value={item.name} onFocus={() => setIsItemNameFocused(true)} onBlur={() => setIsItemNameFocused(false)} onChange={(event) => setItem((currentItem) => ({ ...currentItem, name: event.target.value }))} />
           <input data-item-entry-control aria-label="Item price" placeholder="0.00" inputMode="decimal" value={item.price} onFocus={() => setIsItemPriceFocused(true)} onBlur={() => setIsItemPriceFocused(false)} onChange={(event) => setItem((currentItem) => ({ ...currentItem, price: event.target.value }))} onKeyDown={(event) => event.key === 'Enter' && addItem()} />
-          <motion.button ref={addItemButtonRef} data-item-entry-control className="item-entry-add" type="button" title="Add item" disabled={Boolean(launchingItem)} onClick={addItem} animate={launchingItem ? { rotate: 360, scale: [1, 1.12, 1] } : { rotate: 0, scale: 1 }} transition={launchingItem ? { duration: 0.55, ease: 'easeInOut' } : { duration: 0 }}><FaPlus aria-hidden="true" /></motion.button>
-          <button data-item-entry-control type="button" title={isScanningReceipt ? 'Scanning e-bill' : 'Upload e-bill'} aria-label={isScanningReceipt ? 'Scanning e-bill' : 'Upload e-bill'} disabled={isScanningReceipt} onClick={openReceiptPicker}><FaFileArrowUp aria-hidden="true" /></button>
-          <button data-item-entry-control className="item-entry-options" type="button" title="Custom split options" aria-expanded={optionsOpen} onClick={() => setOptionsOpen((open) => !open)}><FaEllipsis aria-hidden="true" /></button>
+          <div className="item-entry-actions">
+            <motion.button ref={addItemButtonRef} data-item-entry-control className="item-entry-add" type="button" title="Add item" disabled={Boolean(launchingItem)} onClick={addItem} animate={launchingItem ? { rotate: 360, scale: [1, 1.12, 1] } : { rotate: 0, scale: 1 }} transition={launchingItem ? { duration: 0.55, ease: 'easeInOut' } : { duration: 0 }}><FaPlus aria-hidden="true" /></motion.button>
+            <button data-item-entry-control type="button" title={isScanningReceipt ? 'Scanning e-bill' : 'Upload e-bill'} aria-label={isScanningReceipt ? 'Scanning e-bill' : 'Upload e-bill'} disabled={isScanningReceipt} onClick={openReceiptPicker}><FaFileArrowUp aria-hidden="true" /></button>
+            <button data-item-entry-control className="item-entry-options" type="button" title="Custom split options" aria-expanded={optionsOpen} onClick={() => setOptionsOpen((open) => !open)}><FaEllipsis aria-hidden="true" /></button>
+          </div>
         </div>
         <input ref={receiptInputRef} className="receipt-file-input" type="file" accept="image/*" onChange={scanReceipt} />
         <AnimatePresence initial={false}>
