@@ -9,7 +9,6 @@ from app.core.migrations import run_migrations
 from app.routers.auth import router as auth_router
 from app.routers.bills import router as bills_router
 from app.routers.kitchens import router as kitchens_router
-from app.routers.receipt import router as receipt_router
 
 
 def create_app() -> FastAPI:
@@ -38,7 +37,6 @@ def create_app() -> FastAPI:
     app.include_router(auth_router)
     app.include_router(kitchens_router)
     app.include_router(bills_router)
-    app.include_router(receipt_router)
     return app
 
 

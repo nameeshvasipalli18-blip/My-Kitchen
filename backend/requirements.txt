@@ -5,6 +5,3 @@ python-dotenv
 psycopg[binary]
 sqlmodel
 python-multipart
-Pillow
-paddleocr
-paddlepaddle

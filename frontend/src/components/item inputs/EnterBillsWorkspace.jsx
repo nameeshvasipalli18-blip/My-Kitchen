@@ -1,9 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion, useAnimation } from 'framer-motion';
-import { FaBars, FaEllipsis, FaFileArrowUp, FaPen, FaPlus, FaReceipt, FaTrash, FaXmark } from 'react-icons/fa6';
+import { FaBars, FaEllipsis, FaPen, FaPlus, FaReceipt, FaTrash, FaXmark } from 'react-icons/fa6';
 import api from '../../api.js';
-import { ReceiptScanLoading, ReceiptScanReview } from '../receipt/ReceiptScanReview.jsx';
 import './ItemInputs.css';
 
 const createItem = (trip) => ({
@@ -16,7 +15,6 @@ const createItem = (trip) => ({
 
 export const EnterBillsWorkspace = ({ kitchenId, initialInputs, shoppingTrip, setShoppingTrip, setShoppingTrips, onTripSaved, editingTripId, setEditingTripId }) => {
   const itemNameInputRef = useRef(null);
-  const receiptInputRef = useRef(null);
   const inlineItemNameInputRef = useRef(null);
   const shouldFocusInlineItemNameRef = useRef(false);
   const addItemButtonRef = useRef(null);
@@ -44,10 +42,6 @@ export const EnterBillsWorkspace = ({ kitchenId, initialInputs, shoppingTrip, se
   const [newItemIndex, setNewItemIndex] = useState(null);
   const [isBillScrollActive, setIsBillScrollActive] = useState(false);
   const [isItemNameFocused, setIsItemNameFocused] = useState(false);
-  const [scannedItems, setScannedItems] = useState([]);
-  const [scanResult, setScanResult] = useState(null);
-  const [isScanningReceipt, setIsScanningReceipt] = useState(false);
-  const [isReceiptReviewOpen, setIsReceiptReviewOpen] = useState(false);
   const isDraftingItem = shoppingTrip.items.length === 0 && Boolean(item.name.trim() || item.price.trim());
 
   useEffect(() => {
@@ -247,77 +241,6 @@ export const EnterBillsWorkspace = ({ kitchenId, initialInputs, shoppingTrip, se
     }
   };
 
-  const openReceiptPicker = () => {
-    if (!isScanningReceipt) receiptInputRef.current?.click();
-  };
-
-  const scanReceipt = async (event) => {
-    const [receiptImage] = event.target.files || [];
-    event.target.value = '';
-    if (!receiptImage) return;
-    if (!receiptImage.type.startsWith('image/')) {
-      setError('Choose an image file for the e-bill.');
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('image', receiptImage);
-    setIsScanningReceipt(true);
-    setError('');
-    try {
-      const response = await api.post('/receipt/scan', formData);
-      console.log('Receipt scan response:', response.data);
-      const extractedItems = Array.isArray(response.data?.items) ? response.data.items : [];
-      const validItems = extractedItems
-        .filter((scannedItem) => scannedItem?.name && Number.isFinite(Number(scannedItem.price)) && Number(scannedItem.price) > 0)
-        .map((scannedItem) => ({ name: scannedItem.name, price: Number(scannedItem.price) }));
-      if (validItems.length === 0) {
-        setError('No grocery items were found in that e-bill.');
-        return;
-      }
-      setScannedItems(validItems);
-      setScanResult(response.data);
-      setIsReceiptReviewOpen(true);
-    } catch (requestError) {
-      setError(requestError.response?.data?.detail || 'Unable to scan this e-bill.');
-    } finally {
-      setIsScanningReceipt(false);
-    }
-  };
-
-  const updateScannedItem = (index, field, value) => {
-    setScannedItems((items) => items.map((scannedItem, itemIndex) => itemIndex === index ? { ...scannedItem, [field]: value } : scannedItem));
-  };
-
-  const deleteScannedItem = (index) => {
-    setScannedItems((items) => items.filter((_, itemIndex) => itemIndex !== index));
-  };
-
-  const closeReceiptReview = () => {
-    setIsReceiptReviewOpen(false);
-    setScannedItems([]);
-    setScanResult(null);
-  };
-
-  const confirmScannedItems = () => {
-    const confirmedItems = scannedItems
-      .map((scannedItem) => ({ name: scannedItem.name.trim(), price: Number(scannedItem.price) }))
-      .filter((scannedItem) => scannedItem.name && Number.isFinite(scannedItem.price) && scannedItem.price > 0);
-    if (confirmedItems.length === 0) {
-      setError('Add at least one valid item before confirming the scan.');
-      return;
-    }
-
-    setNewItemIndex(shoppingTrip.items.length + confirmedItems.length - 1);
-    setIsBillScrollActive(true);
-    setShoppingTrip((trip) => ({
-      ...trip,
-      items: [...trip.items, ...confirmedItems.map((scannedItem) => ({ ...createItem(trip), ...scannedItem }))],
-    }));
-    closeReceiptReview();
-    triggerBillGlow();
-  };
-
   const resolveBillId = (bill) => bill.dbTripId ?? bill.id;
 
   const editSavedBill = (bill) => {
@@ -356,7 +279,6 @@ export const EnterBillsWorkspace = ({ kitchenId, initialInputs, shoppingTrip, se
         setInlineItem(null);
         setInlineOptionsOpen(false);
         setOptionsOpen(false);
-        closeReceiptReview();
       }
     } catch (requestError) {
       setError(requestError.response?.data?.detail || 'Unable to delete this bill.');
@@ -429,10 +351,8 @@ export const EnterBillsWorkspace = ({ kitchenId, initialInputs, shoppingTrip, se
           <input ref={itemNameInputRef} data-item-entry-control aria-label="Item name" placeholder="Item name" value={item.name} onFocus={() => setIsItemNameFocused(true)} onBlur={() => setIsItemNameFocused(false)} onChange={(event) => setItem((currentItem) => ({ ...currentItem, name: event.target.value }))} />
           <input data-item-entry-control aria-label="Item price" placeholder="0.00" inputMode="decimal" value={item.price} onChange={(event) => setItem((currentItem) => ({ ...currentItem, price: event.target.value }))} onKeyDown={(event) => event.key === 'Enter' && addItem()} />
           <motion.button ref={addItemButtonRef} data-item-entry-control className="item-entry-add" type="button" title="Add item" disabled={Boolean(launchingItem)} onClick={addItem} animate={launchingItem ? { rotate: 360, scale: [1, 1.12, 1] } : { rotate: 0, scale: 1 }} transition={launchingItem ? { duration: 0.55, ease: 'easeInOut' } : { duration: 0 }}><FaPlus aria-hidden="true" /></motion.button>
-          <button data-item-entry-control type="button" title={isScanningReceipt ? 'Scanning e-bill' : 'Upload e-bill'} aria-label={isScanningReceipt ? 'Scanning e-bill' : 'Upload e-bill'} disabled={isScanningReceipt} onClick={openReceiptPicker}><FaFileArrowUp aria-hidden="true" /></button>
           <button data-item-entry-control className="item-entry-options" type="button" title="Custom split options" aria-expanded={optionsOpen} onClick={() => setOptionsOpen((open) => !open)}><FaEllipsis aria-hidden="true" /></button>
         </div>
-        <input ref={receiptInputRef} className="receipt-file-input" type="file" accept="image/*" onChange={scanReceipt} />
         <AnimatePresence initial={false}>
         {optionsOpen && <motion.div className="item-entry-options-panel" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }} transition={{ duration: 0.2, ease: 'easeOut' }}>
           <label>Paid by<select data-item-entry-control value={item.paidBy} onChange={(event) => setItem((currentItem) => ({ ...currentItem, paidBy: event.target.value }))}>{initialInputs.map((name) => <option key={name} value={name}>{name}</option>)}</select></label>
@@ -443,8 +363,6 @@ export const EnterBillsWorkspace = ({ kitchenId, initialInputs, shoppingTrip, se
         </motion.div>
       </section>
       </div>
-      <ReceiptScanLoading isOpen={isScanningReceipt} />
-      <ReceiptScanReview isOpen={isReceiptReviewOpen} items={scannedItems} scanResult={scanResult} onChangeItem={updateScannedItem} onDeleteItem={deleteScannedItem} onConfirm={confirmScannedItems} onCancel={closeReceiptReview} />
       {menuHost && createPortal(<div className="enter-bills-menu-content" ref={sessionBillsRef}>
         <button className="enter-bills-menu-toggle" type="button" title={menuOpen ? 'Close menu' : 'Open menu'} aria-label={menuOpen ? 'Close menu' : 'Open menu'} aria-expanded={menuOpen} onClick={() => { setMenuOpen((open) => !open); setSessionBillsOpen(false); }}>
           <FaBars aria-hidden="true" />

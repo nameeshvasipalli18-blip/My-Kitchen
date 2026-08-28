@@ -912,16 +912,6 @@
   font-size: 0.8rem;
 }
 
-.receipt-file-input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  clip-path: inset(50%);
-  white-space: nowrap;
-}
-
 .item-entry-card:hover,
 .item-entry-card:focus,
 .item-entry-card:focus-within {
