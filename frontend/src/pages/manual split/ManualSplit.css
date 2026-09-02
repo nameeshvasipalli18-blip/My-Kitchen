@@ -587,6 +587,13 @@ html, body {
   .kitchen-split-keyboard-open .kitchen-split-content {
     display: contents;
   }
+
+  .kitchen-split-keyboard-open .enter-bills-workspace {
+    display: flex;
+    flex-direction: column;
+    height: 100dvh;
+    overflow: hidden;
+  }
 }
 
 @media (max-width: 700px) and (max-height: 520px) {

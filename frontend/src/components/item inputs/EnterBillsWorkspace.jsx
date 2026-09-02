@@ -20,6 +20,7 @@ export const EnterBillsWorkspace = ({ kitchenId, initialInputs, shoppingTrip, se
   const addItemButtonRef = useRef(null);
   const activeBillCardRef = useRef(null);
   const activeBillBodyRef = useRef(null);
+  const newActiveBillItemRef = useRef(null);
   const itemEntryCardRef = useRef(null);
   const sessionBillsRef = useRef(null);
   const launchCompletedRef = useRef(false);
@@ -91,7 +92,7 @@ export const EnterBillsWorkspace = ({ kitchenId, initialInputs, shoppingTrip, se
   useEffect(() => {
     if (newItemIndex === null) return undefined;
     requestAnimationFrame(() => {
-      activeBillBodyRef.current?.scrollTo({ top: activeBillBodyRef.current.scrollHeight, behavior: 'smooth' });
+      newActiveBillItemRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     });
     const clearScrollCue = window.setTimeout(() => setIsBillScrollActive(false), 700);
     return () => window.clearTimeout(clearScrollCue);
@@ -325,7 +326,7 @@ export const EnterBillsWorkspace = ({ kitchenId, initialInputs, shoppingTrip, se
         </header>
         <div className={`active-bill-body${isCancellingInlineEdit ? ' active-bill-body-transitioning' : ''}${isBillScrollActive ? ' active-bill-body-scroll-active' : ''}`} ref={activeBillBodyRef} aria-busy={isCancellingInlineEdit} onChangeCapture={(event) => event.target.closest('.active-bill-item') && triggerBillGlow()}>
           {shoppingTrip.items.length === 0 ? <AnimatePresence initial={false}>{!isDraftingItem && !isItemNameFocused && !isItemPriceFocused && <motion.button className="active-bill-empty" type="button" onClick={focusItemNameInput} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.16 }}>Add an item</motion.button>}</AnimatePresence> : shoppingTrip.items.map((activeItem, index) => (
-            <motion.article layout="size" className={`active-bill-item${inlineEditingIndex === index ? ' active-bill-item-editing' : ''}`} key={`${activeItem.name}-${index}`} initial={newItemIndex === index ? { opacity: 0, scale: 0.72, y: -10 } : false} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ layout: { duration: 0.28, ease: 'easeOut' }, default: { type: 'spring', stiffness: 420, damping: 22 } }}>
+            <motion.article ref={newItemIndex === index ? newActiveBillItemRef : null} layout="size" className={`active-bill-item${inlineEditingIndex === index ? ' active-bill-item-editing' : ''}`} key={`${activeItem.name}-${index}`} initial={newItemIndex === index ? { opacity: 0, scale: 0.72, y: -10 } : false} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ layout: { duration: 0.28, ease: 'easeOut' }, default: { type: 'spring', stiffness: 420, damping: 22 } }}>
               {inlineEditingIndex === index ? <div className="active-bill-item-edit-form" onKeyDown={handleInlineEditArrowNavigation}>
                 <input ref={(node) => { inlineItemNameInputRef.current = node; if (node && shouldFocusInlineItemNameRef.current) { node.focus(); shouldFocusInlineItemNameRef.current = false; } }} data-inline-edit-control aria-label="Item name" value={inlineItem.name} onChange={(event) => setInlineItem((currentItem) => ({ ...currentItem, name: event.target.value }))} />
                 <input data-inline-edit-control aria-label="Item price" inputMode="decimal" value={inlineItem.price} onChange={(event) => setInlineItem((currentItem) => ({ ...currentItem, price: event.target.value }))} />

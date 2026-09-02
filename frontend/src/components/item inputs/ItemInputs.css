@@ -1052,28 +1052,31 @@
   }
 
   .enter-bills-workspace-keyboard-open .active-bill-workspace {
-    position: fixed;
-    z-index: 1;
-    inset: 0 0 var(--item-entry-bottom-offset, 0px);
+    display: flex;
+    position: static;
+    flex: 1;
+    flex-direction: column;
+    width: 100%;
     min-height: 0;
-    padding: 0.35rem 0.5rem 0;
-    place-items: stretch;
+    padding: 0;
+    gap: 0;
   }
 
   .enter-bills-workspace-keyboard-open .active-bill-card {
     flex: 1;
-    height: 100%;
+    height: auto;
     max-height: none;
   }
 
   .enter-bills-workspace-keyboard-open .active-bill-workspace-empty {
-    position: fixed;
+    position: static;
     align-self: auto;
     pointer-events: auto;
   }
 
-  .enter-bills-workspace-keyboard-open .active-bill-header {
-    display: none;
+  .enter-bills-workspace-keyboard-open .active-bill-body {
+    flex: 1 1 auto;
+    padding-bottom: 0.5rem;
   }
 
   .item-entry-card {
@@ -1083,6 +1086,23 @@
     padding: 0.45rem;
     width: min(calc(100% - 1rem), 30rem);
     transform: translateX(-50%);
+  }
+
+  .enter-bills-workspace-keyboard-open .item-entry-card {
+    position: relative;
+    z-index: 2;
+    bottom: auto;
+    left: auto;
+    flex: 0 0 auto;
+    width: min(calc(100% - 1rem), 30rem);
+    margin: 0.35rem auto 0;
+    transform: none;
+  }
+
+  .enter-bills-workspace-keyboard-open .item-entry-card:hover,
+  .enter-bills-workspace-keyboard-open .item-entry-card:focus,
+  .enter-bills-workspace-keyboard-open .item-entry-card:focus-within {
+    transform: none;
   }
 
   .item-entry-card:hover,
