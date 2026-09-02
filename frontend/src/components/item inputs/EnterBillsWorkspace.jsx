@@ -92,7 +92,21 @@ export const EnterBillsWorkspace = ({ kitchenId, initialInputs, shoppingTrip, se
   useEffect(() => {
     if (newItemIndex === null) return undefined;
     requestAnimationFrame(() => {
-      newActiveBillItemRef.current?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      const itemList = activeBillBodyRef.current;
+      const newItem = newActiveBillItemRef.current;
+      if (itemList && newItem) {
+        const listBounds = itemList.getBoundingClientRect();
+        const itemBounds = newItem.getBoundingClientRect();
+        const itemTopOffset = itemBounds.top - listBounds.top;
+        const itemBottomOffset = itemBounds.bottom - listBounds.bottom;
+        if (itemTopOffset < 0 || itemBottomOffset > 0) {
+          itemList.scrollTo({
+            top: itemList.scrollTop + (itemTopOffset < 0 ? itemTopOffset : itemBottomOffset),
+            behavior: 'smooth',
+          });
+        }
+      }
+      itemNameInputRef.current?.focus({ preventScroll: true });
     });
     const clearScrollCue = window.setTimeout(() => setIsBillScrollActive(false), 700);
     return () => window.clearTimeout(clearScrollCue);
@@ -145,7 +159,6 @@ export const EnterBillsWorkspace = ({ kitchenId, initialInputs, shoppingTrip, se
     setItem(createItem(shoppingTrip));
     setLaunchingItem(null);
     triggerBillGlow();
-    itemNameInputRef.current?.focus();
   };
 
   const triggerBillGlow = () => {
