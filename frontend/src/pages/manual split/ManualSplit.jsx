@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { EnterBillsWorkspace } from '../../components/item inputs/EnterBillsWorkspace.jsx';
@@ -31,6 +31,8 @@ const ManualSplit = () => {
   const [avoidedFoods, setAvoidedFoods] = useState([]);
   const [newAvoidedFood, setNewAvoidedFood] = useState('');
   const [accountError, setAccountError] = useState('');
+  const [mobileKeyboardOpen, setMobileKeyboardOpen] = useState(false);
+  const viewportHeightRef = useRef(0);
 
   const createDefaultTrip = useCallback((names) => ({
     id: Date.now(),
@@ -86,6 +88,29 @@ const ManualSplit = () => {
       active = false;
     };
   }, [loadBills, navigate, refreshKitchenMembers]);
+
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    if (!viewport) return undefined;
+
+    const updateKeyboardState = () => {
+      viewportHeightRef.current = Math.max(viewportHeightRef.current, viewport.height);
+      const activeElement = document.activeElement;
+      const editableControlIsFocused = activeElement instanceof HTMLInputElement || activeElement instanceof HTMLTextAreaElement || activeElement instanceof HTMLSelectElement;
+      const keyboardHeight = viewportHeightRef.current - viewport.height;
+      setMobileKeyboardOpen(window.innerWidth <= 700 && editableControlIsFocused && keyboardHeight > 150);
+    };
+
+    updateKeyboardState();
+    viewport.addEventListener('resize', updateKeyboardState);
+    window.addEventListener('focusin', updateKeyboardState);
+    window.addEventListener('focusout', updateKeyboardState);
+    return () => {
+      viewport.removeEventListener('resize', updateKeyboardState);
+      window.removeEventListener('focusin', updateKeyboardState);
+      window.removeEventListener('focusout', updateKeyboardState);
+    };
+  }, []);
 
   const editTrip = (trip) => {
     setShoppingTrip({
@@ -248,14 +273,13 @@ const ManualSplit = () => {
   const canManageMembers = kitchenMembers.some((member) => member.username === user?.username && ['owner', 'admin'].includes(member.role));
 
   return (
-    <motion.div className={`kitchen-split-container${darkMode ? ' kitchen-split-dark' : ''}`} initial="hidden" animate="visible" variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 0.2 } } }}>
+    <motion.div className={`kitchen-split-container${darkMode ? ' kitchen-split-dark' : ''}${mobileKeyboardOpen ? ' kitchen-split-keyboard-open' : ''}`} initial="hidden" animate="visible" variants={{ hidden: { opacity: 0 }, visible: { opacity: 1, transition: { duration: 0.2 } } }}>
       <motion.div className="kitchen-split-header" variants={{ hidden: { opacity: 0, y: -12 }, visible: { opacity: 1, y: 0, transition: { duration: 0.35 } } }}>
         <p className="kitchen-split-logo">
-          <span className="kitchen-split-logo-kitchen">Kitchen</span>
+          <span className="kitchen-split-logo-kitchen">{kitchenName || 'Kitchen'}</span>
           <span className="kitchen-split-logo-split">Split</span>
         </p>
         <div className="header-kitchen-account">
-          <span className="header-kitchen-name">{kitchenName || 'Kitchen'}</span>
           <button className="header-theme-toggle" type="button" title={darkMode ? 'Use light mode' : 'Use dark mode'} aria-label={darkMode ? 'Use light mode' : 'Use dark mode'} aria-pressed={darkMode} onClick={() => setDarkMode((enabled) => !enabled)}>
             {darkMode ? <FaSun aria-hidden="true" /> : <FaMoon aria-hidden="true" />}
           </button>
@@ -296,7 +320,6 @@ const ManualSplit = () => {
           </motion.div>
         )}
       </AnimatePresence>
-      {activeWindow === 'enter-bills' && <div id="enter-bills-menu" className="enter-bills-menu" aria-label="Enter bills menu" />}
       <div className="kitchen-split-body">
         <motion.div className="kitchen-split-content" initial={activeWindow === 'enter-bills' && shoppingTrip.items.length === 0 ? { opacity: 0 } : { opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0, transition: { delay: 0.1, duration: 0.35 } }}>
           {activeWindow === 'enter-bills' && initialInputs.length > 0 && (
@@ -309,6 +332,7 @@ const ManualSplit = () => {
               onTripSaved={highlightSavedTrip}
               editingTripId={editingTripId}
               setEditingTripId={setEditingTripId}
+              mobileKeyboardOpen={mobileKeyboardOpen}
             />
           )}
           {activeWindow === 'saved-bills' && (

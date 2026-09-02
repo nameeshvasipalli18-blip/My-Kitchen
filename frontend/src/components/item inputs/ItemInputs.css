@@ -1051,6 +1051,19 @@
     width: 100%;
   }
 
+  .enter-bills-workspace-keyboard-open .active-bill-workspace {
+    min-height: calc(100dvh - var(--item-entry-bottom-offset, 0px) - 0.7rem);
+  }
+
+  .enter-bills-workspace-keyboard-open .active-bill-card {
+    flex: 1;
+    max-height: none;
+  }
+
+  .enter-bills-workspace-keyboard-open .active-bill-header {
+    display: none;
+  }
+
   .item-entry-card {
     position: fixed;
     bottom: calc(var(--kitchen-window-nav-height, 0px) + var(--kitchen-window-nav-gap, 0.5rem));

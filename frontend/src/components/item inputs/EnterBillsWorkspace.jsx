@@ -13,7 +13,7 @@ const createItem = (trip) => ({
   splitBetween: [...trip.participants],
 });
 
-export const EnterBillsWorkspace = ({ kitchenId, initialInputs, shoppingTrip, setShoppingTrip, setShoppingTrips, onTripSaved, editingTripId, setEditingTripId }) => {
+export const EnterBillsWorkspace = ({ kitchenId, initialInputs, shoppingTrip, setShoppingTrip, setShoppingTrips, onTripSaved, editingTripId, setEditingTripId, mobileKeyboardOpen }) => {
   const itemNameInputRef = useRef(null);
   const inlineItemNameInputRef = useRef(null);
   const shouldFocusInlineItemNameRef = useRef(false);
@@ -315,7 +315,7 @@ export const EnterBillsWorkspace = ({ kitchenId, initialInputs, shoppingTrip, se
   const menuHost = document.getElementById('enter-bills-menu');
 
   return (
-    <section className="enter-bills-workspace" aria-label="Enter bills">
+    <section className={`enter-bills-workspace${mobileKeyboardOpen ? ' enter-bills-workspace-keyboard-open' : ''}`} aria-label="Enter bills">
       <div className={`active-bill-workspace${shoppingTrip.items.length === 0 && !isDraftingItem ? ' active-bill-workspace-empty' : ''}`}>
       <motion.section ref={activeBillCardRef} layout className={`active-bill-card${shoppingTrip.items.length === 0 ? ' active-bill-card-empty' : ''}${isBillGlowing ? ' active-bill-card-receiving' : ''}${saving ? ' active-bill-card-clearing' : ''}`} transition={{ layout: { duration: 0.28, ease: 'easeOut' } }} onAnimationEnd={(event) => event.animationName === 'activeBillReceiveGlow' && setIsBillGlowing(false)}>
         <header className="active-bill-header">
@@ -352,7 +352,7 @@ export const EnterBillsWorkspace = ({ kitchenId, initialInputs, shoppingTrip, se
           <input ref={itemNameInputRef} data-item-entry-control aria-label="Item name" placeholder="Item name" value={item.name} onFocus={() => setIsItemNameFocused(true)} onBlur={() => setIsItemNameFocused(false)} onChange={(event) => setItem((currentItem) => ({ ...currentItem, name: event.target.value }))} />
           <input data-item-entry-control aria-label="Item price" placeholder="0.00" inputMode="decimal" value={item.price} onFocus={() => setIsItemPriceFocused(true)} onBlur={() => setIsItemPriceFocused(false)} onChange={(event) => setItem((currentItem) => ({ ...currentItem, price: event.target.value }))} onKeyDown={(event) => event.key === 'Enter' && addItem()} />
           <div className="item-entry-actions">
-            <motion.button ref={addItemButtonRef} data-item-entry-control className="item-entry-add" type="button" title="Add item" disabled={Boolean(launchingItem)} onClick={addItem} animate={launchingItem ? { rotate: 360, scale: [1, 1.12, 1] } : { rotate: 0, scale: 1 }} transition={launchingItem ? { duration: 0.55, ease: 'easeInOut' } : { duration: 0 }}><FaPlus aria-hidden="true" /></motion.button>
+            <motion.button ref={addItemButtonRef} data-item-entry-control className="item-entry-add" type="button" title="Add item" disabled={Boolean(launchingItem)} onPointerDown={(event) => event.preventDefault()} onClick={addItem} animate={launchingItem ? { rotate: 360, scale: [1, 1.12, 1] } : { rotate: 0, scale: 1 }} transition={launchingItem ? { duration: 0.55, ease: 'easeInOut' } : { duration: 0 }}><FaPlus aria-hidden="true" /></motion.button>
             <button data-item-entry-control className="item-entry-options" type="button" title="Custom split options" aria-expanded={optionsOpen} onClick={() => setOptionsOpen((open) => !open)}><FaEllipsis aria-hidden="true" /></button>
           </div>
         </div>
