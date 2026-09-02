@@ -1052,12 +1052,24 @@
   }
 
   .enter-bills-workspace-keyboard-open .active-bill-workspace {
-    min-height: calc(100dvh - var(--item-entry-bottom-offset, 0px) - 0.7rem);
+    position: fixed;
+    z-index: 1;
+    inset: 0 0 var(--item-entry-bottom-offset, 0px);
+    min-height: 0;
+    padding: 0.35rem 0.5rem;
+    place-items: stretch;
   }
 
   .enter-bills-workspace-keyboard-open .active-bill-card {
     flex: 1;
+    height: 100%;
     max-height: none;
+  }
+
+  .enter-bills-workspace-keyboard-open .active-bill-workspace-empty {
+    position: fixed;
+    align-self: auto;
+    pointer-events: auto;
   }
 
   .enter-bills-workspace-keyboard-open .active-bill-header {

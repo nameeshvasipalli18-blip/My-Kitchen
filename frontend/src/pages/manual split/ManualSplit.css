@@ -575,8 +575,17 @@ html, body {
     display: none;
   }
 
+  .kitchen-split-keyboard-open .kitchen-split-header {
+    display: none;
+  }
+
   .kitchen-split-keyboard-open .kitchen-split-body {
-    padding-bottom: 0.35rem;
+    display: contents;
+    padding: 0;
+  }
+
+  .kitchen-split-keyboard-open .kitchen-split-content {
+    display: contents;
   }
 }
 

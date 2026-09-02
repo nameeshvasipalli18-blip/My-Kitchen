@@ -72,7 +72,8 @@ export const EnterBillsWorkspace = ({ kitchenId, initialInputs, shoppingTrip, se
       } else {
         activeBillCard.style.removeProperty('--active-bill-max-height');
       }
-      activeBillCard.style.setProperty('--item-entry-bottom-offset', `${Math.max(0, window.innerHeight - entryCardTop)}px`);
+      const visibleViewportHeight = window.visualViewport?.height || window.innerHeight;
+      activeBillCard.style.setProperty('--item-entry-bottom-offset', `${Math.max(0, visibleViewportHeight - entryCardTop)}px`);
     };
 
     updateActiveBillMaxHeight();
@@ -85,7 +86,7 @@ export const EnterBillsWorkspace = ({ kitchenId, initialInputs, shoppingTrip, se
       resizeObserver.disconnect();
       window.removeEventListener('resize', updateActiveBillMaxHeight);
     };
-  }, [isDraftingItem, optionsOpen, shoppingTrip.items.length]);
+  }, [isDraftingItem, mobileKeyboardOpen, optionsOpen, shoppingTrip.items.length]);
 
   useEffect(() => {
     if (newItemIndex === null) return undefined;
