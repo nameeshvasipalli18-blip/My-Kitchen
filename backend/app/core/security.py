@@ -5,7 +5,7 @@ import hmac
 import secrets
 from datetime import datetime, timedelta, timezone
 
-TOKEN_TTL_HOURS = 24 * 14
+TOKEN_TTL_HOURS = 24 * 365
 PASSWORD_RESET_TOKEN_TTL_MINUTES = 30
 PBKDF2_ITERATIONS = 120_000
 

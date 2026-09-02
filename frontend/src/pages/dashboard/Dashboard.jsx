@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { FaBowlFood, FaCheck, FaChevronDown, FaCircleUser, FaMoon, FaPen, FaSun, FaUsersGear, FaUtensils, FaXmark } from 'react-icons/fa6';
+import { FaBowlFood, FaCheck, FaChevronDown, FaCircleUser, FaMoon, FaPen, FaSun, FaTrash, FaUsersGear, FaUtensils, FaXmark } from 'react-icons/fa6';
 import api from '../../api.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import './Dashboard.css';
@@ -110,6 +110,17 @@ const Dashboard = () => {
     }
   };
 
+  const handleDeleteKitchen = async (kitchen) => {
+    if (!window.confirm(`Delete ${kitchen.name} and all of its bills? This cannot be undone.`)) return;
+    try {
+      await api.delete(`/kitchens/${kitchen.id}`);
+      setKitchens((currentKitchens) => currentKitchens.filter((currentKitchen) => currentKitchen.id !== kitchen.id));
+      if (Number(selectedKitchenId) === kitchen.id) setSelectedKitchenId('');
+    } catch (requestError) {
+      setError(requestError.response?.data?.detail || 'Unable to delete kitchen.');
+    }
+  };
+
   const selectedKitchen = kitchens.find((kitchen) => kitchen.id === Number(selectedKitchenId));
   const canManageKitchen = (kitchen) => kitchen?.role === 'owner' || kitchen?.role === 'admin';
 
@@ -206,6 +217,7 @@ const Dashboard = () => {
                 <button type="button" onClick={() => navigate(`/manual-split/${kitchen.id}`)}>
                   Open bills
                 </button>
+                {kitchen.role === 'owner' && <button className="kitchen-delete" type="button" title={`Delete ${kitchen.name}`} onClick={() => handleDeleteKitchen(kitchen)}><FaTrash aria-hidden="true" />Delete kitchen</button>}
               </article>
             ))}
             {kitchens.length === 0 && <p>No kitchens yet. Create one to start splitting bills.</p>}

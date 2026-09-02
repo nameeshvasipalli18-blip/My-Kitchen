@@ -376,6 +376,19 @@
   color: #244615;
 }
 
+.kitchen-card .kitchen-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  background: #b91c1c;
+}
+
+.kitchen-card .kitchen-delete:hover,
+.kitchen-card .kitchen-delete:focus-visible {
+  background: #991b1b;
+}
+
 .kitchen-members {
   padding: 0.7rem 0;
   border-top: 1px solid #dcebd2;

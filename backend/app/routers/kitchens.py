@@ -6,7 +6,17 @@ from sqlmodel import Session, select
 from app.core.db import get_session
 from app.core.dependencies import get_current_user, get_kitchen_membership_or_403, require_membership_role
 from app.core.security import normalize_email
-from app.models import KitchenMembershipTable, KitchenTable, UserTable, utc_now
+from app.models import (
+    BillDefaultSplitParticipantTable,
+    BillItemSplitTable,
+    BillItemTable,
+    BillParticipantTable,
+    BillTable,
+    KitchenMembershipTable,
+    KitchenTable,
+    UserTable,
+    utc_now,
+)
 from app.schemas.kitchen import (
     KitchenCreateRequest,
     KitchenDetailResponse,
@@ -67,6 +77,42 @@ def create_kitchen(
     session.commit()
     session.refresh(membership)
     return KitchenDetailResponse(id=kitchen.id, name=kitchen.name, role=membership.role, members=[serialize_member(membership, current_user)])
+
+
+@router.delete("/{kitchen_id}")
+def delete_kitchen(
+    kitchen_id: int,
+    current_user: UserTable = Depends(get_current_user),
+    session: Session = Depends(get_session),
+):
+    membership = get_kitchen_membership_or_403(session, kitchen_id, current_user.id)
+    require_membership_role(membership, {"owner"})
+    kitchen = session.get(KitchenTable, kitchen_id)
+    if not kitchen:
+        raise HTTPException(status_code=404, detail="Kitchen not found")
+
+    bills = session.exec(select(BillTable).where(BillTable.kitchen_id == kitchen_id)).all()
+    for bill in bills:
+        for row in session.exec(
+            select(BillDefaultSplitParticipantTable).where(BillDefaultSplitParticipantTable.bill_id == bill.id)
+        ).all():
+            session.delete(row)
+        for row in session.exec(select(BillParticipantTable).where(BillParticipantTable.bill_id == bill.id)).all():
+            session.delete(row)
+        items = session.exec(select(BillItemTable).where(BillItemTable.bill_id == bill.id)).all()
+        for item in items:
+            for split in session.exec(select(BillItemSplitTable).where(BillItemSplitTable.item_id == item.id)).all():
+                session.delete(split)
+            session.delete(item)
+        session.delete(bill)
+
+    for kitchen_membership in session.exec(
+        select(KitchenMembershipTable).where(KitchenMembershipTable.kitchen_id == kitchen_id)
+    ).all():
+        session.delete(kitchen_membership)
+    session.delete(kitchen)
+    session.commit()
+    return {"message": "Kitchen deleted successfully", "kitchenId": kitchen_id}
 
 
 @router.get("/{kitchen_id}", response_model=KitchenDetailResponse)
