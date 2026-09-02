@@ -85,8 +85,7 @@ def delete_kitchen(
     current_user: UserTable = Depends(get_current_user),
     session: Session = Depends(get_session),
 ):
-    membership = get_kitchen_membership_or_403(session, kitchen_id, current_user.id)
-    require_membership_role(membership, {"owner"})
+    get_kitchen_membership_or_403(session, kitchen_id, current_user.id)
     kitchen = session.get(KitchenTable, kitchen_id)
     if not kitchen:
         raise HTTPException(status_code=404, detail="Kitchen not found")

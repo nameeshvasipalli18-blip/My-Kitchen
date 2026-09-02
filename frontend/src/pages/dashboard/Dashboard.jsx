@@ -111,7 +111,7 @@ const Dashboard = () => {
   };
 
   const handleDeleteKitchen = async (kitchen) => {
-    if (!window.confirm(`Delete ${kitchen.name} and all of its bills? This cannot be undone.`)) return;
+    if (!window.confirm(`Delete ${kitchen.name} for every member, including all of its bills? This cannot be undone.`)) return;
     try {
       await api.delete(`/kitchens/${kitchen.id}`);
       setKitchens((currentKitchens) => currentKitchens.filter((currentKitchen) => currentKitchen.id !== kitchen.id));
@@ -217,7 +217,7 @@ const Dashboard = () => {
                 <button type="button" onClick={() => navigate(`/manual-split/${kitchen.id}`)}>
                   Open bills
                 </button>
-                {kitchen.role === 'owner' && <button className="kitchen-delete" type="button" title={`Delete ${kitchen.name}`} onClick={() => handleDeleteKitchen(kitchen)}><FaTrash aria-hidden="true" />Delete kitchen</button>}
+                <button className="kitchen-delete" type="button" title={`Delete ${kitchen.name}`} onClick={() => handleDeleteKitchen(kitchen)}><FaTrash aria-hidden="true" />Delete kitchen</button>
               </article>
             ))}
             {kitchens.length === 0 && <p>No kitchens yet. Create one to start splitting bills.</p>}

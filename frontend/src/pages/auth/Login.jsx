@@ -10,6 +10,7 @@ const Login = () => {
   const location = useLocation();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
+  const [keepSignedIn, setKeepSignedIn] = useState(true);
   const [error, setError] = useState('');
 
   if (user) {
@@ -19,7 +20,7 @@ const Login = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      await login(identifier, password);
+      await login(identifier, password, keepSignedIn);
       const nextPath = location.state?.from?.pathname || '/dashboard';
       navigate(nextPath, { replace: true });
     } catch (requestError) {
@@ -40,6 +41,10 @@ const Login = () => {
           <label>
             Password
             <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} />
+          </label>
+          <label className="auth-remember-me">
+            <input type="checkbox" checked={keepSignedIn} onChange={(event) => setKeepSignedIn(event.target.checked)} />
+            <span>Keep me signed in</span>
           </label>
           <Link className="auth-inline-link" to="/forgot-password">Forgot password?</Link>
           {error && <p className="auth-error">{error}</p>}

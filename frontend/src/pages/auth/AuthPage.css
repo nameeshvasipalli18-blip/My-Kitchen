@@ -116,6 +116,22 @@
   outline-offset: 1px;
 }
 
+.auth-card .auth-remember-me {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.auth-card .auth-remember-me input {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  accent-color: #73bb37;
+}
+
 .auth-card button {
   border: none;
   border-radius: 6px;

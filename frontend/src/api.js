@@ -3,13 +3,15 @@ import axios from 'axios';
 const TOKEN_KEY = 'my-kitchen-auth-token';
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
-export const getStoredToken = () => window.localStorage.getItem(TOKEN_KEY);
+export const getStoredToken = () => window.localStorage.getItem(TOKEN_KEY) || window.sessionStorage.getItem(TOKEN_KEY);
 
-export const persistStoredToken = (token) => {
+export const persistStoredToken = (token, keepSignedIn = true) => {
   if (token) {
-    window.localStorage.setItem(TOKEN_KEY, token);
+    window.sessionStorage.removeItem(TOKEN_KEY);
+    window[keepSignedIn ? 'localStorage' : 'sessionStorage'].setItem(TOKEN_KEY, token);
   } else {
     window.localStorage.removeItem(TOKEN_KEY);
+    window.sessionStorage.removeItem(TOKEN_KEY);
   }
 };
 

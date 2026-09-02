@@ -37,9 +37,9 @@ export const AuthProvider = ({ children }) => {
     return () => clearTimeout(timer);
   }, []);
 
-  const login = useCallback(async (identifier, password) => {
+  const login = useCallback(async (identifier, password, keepSignedIn) => {
     const response = await api.post('/auth/login', { identifier, password });
-    persistStoredToken(response.data.token);
+    persistStoredToken(response.data.token, keepSignedIn);
     setUser(response.data.user);
     return response.data.user;
   }, []);
