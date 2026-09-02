@@ -1056,7 +1056,7 @@
     z-index: 1;
     inset: 0 0 var(--item-entry-bottom-offset, 0px);
     min-height: 0;
-    padding: 0.35rem 0.5rem;
+    padding: 0.35rem 0.5rem 0;
     place-items: stretch;
   }
 
