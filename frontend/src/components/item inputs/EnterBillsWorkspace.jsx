@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion, useAnimation } from 'framer-motion';
-import { FaBars, FaEllipsis, FaPen, FaPlus, FaReceipt, FaTrash, FaXmark } from 'react-icons/fa6';
+import { FaBars, FaCalendarDays, FaEllipsis, FaFloppyDisk, FaPen, FaPlus, FaReceipt, FaStore, FaTrash, FaXmark } from 'react-icons/fa6';
 import api from '../../api.js';
 import './ItemInputs.css';
 
@@ -45,6 +45,7 @@ export const EnterBillsWorkspace = ({ kitchenId, initialInputs, shoppingTrip, se
   const [isItemNameFocused, setIsItemNameFocused] = useState(false);
   const [isItemPriceFocused, setIsItemPriceFocused] = useState(false);
   const isDraftingItem = shoppingTrip.items.length === 0 && Boolean(item.name.trim() || item.price.trim());
+  const activeBillTotal = shoppingTrip.items.reduce((total, activeItem) => total + (Number(activeItem.price) || 0), 0);
 
   useEffect(() => {
     let active = true;
@@ -334,8 +335,16 @@ export const EnterBillsWorkspace = ({ kitchenId, initialInputs, shoppingTrip, se
       <div className={`active-bill-workspace${shoppingTrip.items.length === 0 && !isDraftingItem ? ' active-bill-workspace-empty' : ''}`}>
       <motion.section ref={activeBillCardRef} layout className={`active-bill-card${shoppingTrip.items.length === 0 ? ' active-bill-card-empty' : ''}${isBillGlowing ? ' active-bill-card-receiving' : ''}${saving ? ' active-bill-card-clearing' : ''}`} transition={{ layout: { duration: 0.28, ease: 'easeOut' } }} onAnimationEnd={(event) => event.animationName === 'activeBillReceiveGlow' && setIsBillGlowing(false)}>
         <header className="active-bill-header">
-          <label><span>Date</span><input type="date" value={shoppingTrip.date} onChange={(event) => setShoppingTrip((trip) => ({ ...trip, date: event.target.value }))} /></label>
-          <label><span>Store</span><input value={shoppingTrip.store} onChange={(event) => setShoppingTrip((trip) => ({ ...trip, store: event.target.value }))} /></label>
+          <label className="active-bill-header-card">
+            <FaCalendarDays className="active-bill-header-icon" aria-hidden="true" />
+            <span className="active-bill-header-name">Date</span>
+            <input type="date" value={shoppingTrip.date} onChange={(event) => setShoppingTrip((trip) => ({ ...trip, date: event.target.value }))} />
+          </label>
+          <label className="active-bill-header-card">
+            <FaStore className="active-bill-header-icon" aria-hidden="true" />
+            <span className="active-bill-header-name">Store</span>
+            <input value={shoppingTrip.store} onChange={(event) => setShoppingTrip((trip) => ({ ...trip, store: event.target.value }))} />
+          </label>
         </header>
         <div className={`active-bill-body${isCancellingInlineEdit ? ' active-bill-body-transitioning' : ''}${isBillScrollActive ? ' active-bill-body-scroll-active' : ''}`} ref={activeBillBodyRef} aria-busy={isCancellingInlineEdit} onChangeCapture={(event) => event.target.closest('.active-bill-item') && triggerBillGlow()}>
           {shoppingTrip.items.length === 0 ? <AnimatePresence initial={false}>{!isDraftingItem && !isItemNameFocused && !isItemPriceFocused && <motion.button className="active-bill-empty" type="button" onClick={focusItemNameInput} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.16 }}>Add an item</motion.button>}</AnimatePresence> : shoppingTrip.items.map((activeItem, index) => (
@@ -358,8 +367,12 @@ export const EnterBillsWorkspace = ({ kitchenId, initialInputs, shoppingTrip, se
               </div></>}
             </motion.article>
           ))}
+          <div className="active-bill-total">
+            <span>Total bill</span>
+            <strong>£{activeBillTotal.toFixed(2)}</strong>
+          </div>
         </div>
-        <footer className="active-bill-footer"><button type="button" disabled={shoppingTrip.items.length === 0 || saving} onClick={saveBill}>{saving ? 'Saving...' : 'Save bill'}</button></footer>
+        <footer className="active-bill-footer"><button type="button" disabled={shoppingTrip.items.length === 0 || saving} onClick={saveBill}><FaFloppyDisk aria-hidden="true" /><span>{saving ? 'Saving...' : 'Save bill'}</span></button></footer>
       </motion.section>
       <section ref={itemEntryCardRef} className="item-entry-card" tabIndex={0} onKeyDown={handleEntryArrowNavigation} onPointerDownCapture={(event) => event.target.closest('[data-item-entry-control]') && wobbleEntryCard()}>
         <motion.div className="item-entry-card-wobble" animate={entryCardControls}>

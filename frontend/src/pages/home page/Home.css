@@ -1,3 +1,253 @@
+.home-container {
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    min-height: 100dvh;
+    padding: 0.3rem;
+    background-color: #eff4e9;
+    background-image: url('/Desktop%20Background.png');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    color: #1e3427;
+}
+
+.kitchen-split-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 3.25rem;
+    padding: 0.5rem 1.5rem 0.5rem 4rem;
+    border-bottom: 1px solid rgba(6, 64, 43, 0.22);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 3px 10px rgba(36, 70, 21, 0.12);
+}
+
+.kitchen-split-logo {
+    display: inline-flex;
+    overflow: hidden;
+    border: 1px solid #06402b;
+    border-radius: 6px;
+    text-decoration: none;
+}
+
+.kitchen-split-logo-kitchen,
+.kitchen-split-logo-split {
+    padding: 0.3rem 0.5rem;
+    font-weight: 700;
+}
+
+.kitchen-split-logo-kitchen {
+    background: #06402b;
+    color: #fff;
+}
+
+.kitchen-split-logo-split {
+    background: #fff;
+    color: #06402b;
+}
+
+.header-kitchen-account {
+    display: flex;
+    align-items: center;
+}
+
+.header-theme-toggle {
+    display: grid;
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+    place-items: center;
+    border: 1px solid #9ab6a5;
+    border-radius: 50%;
+    background: #f9fcf6;
+    color: #06402b;
+    cursor: pointer;
+    transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease, transform 0.16s ease;
+}
+
+.header-theme-toggle:hover,
+.header-theme-toggle:focus-visible {
+    border-color: #06402b;
+    background: #dcebe0;
+    outline: 2px solid rgba(6, 64, 43, 0.25);
+    outline-offset: 2px;
+}
+
+.home-content {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    box-sizing: border-box;
+    width: min(100%, 70rem);
+    min-height: 0;
+    margin: 0 auto;
+    padding: 4rem clamp(2rem, 8vw, 7rem);
+}
+
+.home-intro {
+    max-width: 28rem;
+}
+
+.home-eyebrow {
+    margin: 0 0 0.7rem;
+    color: #06402b;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: uppercase;
+}
+
+.home-intro h1 {
+    margin: 0;
+    color: #183b2b;
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 3.7rem;
+    font-weight: 700;
+    line-height: 1.05;
+}
+
+.home-intro > p:last-child {
+    max-width: 23rem;
+    margin: 1rem 0 0;
+    color: #345542;
+    font-size: 1.05rem;
+    line-height: 1.5;
+}
+
+.home-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    margin-top: 2rem;
+}
+
+.home-action {
+    display: inline-flex;
+    min-height: 3rem;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.65rem 0.9rem;
+    border: 1px solid rgba(6, 64, 43, 0.38);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.78);
+    color: #06402b;
+    font-weight: 700;
+    text-decoration: none;
+    transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease, transform 0.16s ease;
+}
+
+.home-action:hover,
+.home-action:focus-visible {
+    border-color: #06402b;
+    background: #fff;
+    outline: 2px solid rgba(6, 64, 43, 0.25);
+    outline-offset: 2px;
+    transform: translateY(-2px);
+}
+
+.home-action-primary {
+    border-color: #06402b;
+    background: #06402b;
+    color: #fff;
+}
+
+.home-action-primary:hover,
+.home-action-primary:focus-visible {
+    background: #0a5539;
+    color: #fff;
+}
+
+.home-dark {
+    background-color: #10271c;
+    background-image: none;
+    color: #edf6e9;
+}
+
+.home-dark .kitchen-split-header,
+.home-dark .kitchen-split-logo-split,
+.home-dark .home-action {
+    border-color: #4a6940;
+    background: #1f2b1a;
+}
+
+.home-dark .kitchen-split-logo-split,
+.home-dark .home-eyebrow,
+.home-dark .home-action {
+    color: #9bdb75;
+}
+
+.home-dark .home-intro h1 {
+    color: #edf6e9;
+}
+
+.home-dark .home-intro > p:last-child {
+    color: #c0cfba;
+}
+
+.home-dark .header-theme-toggle {
+    border-color: #4a6940;
+    background: #283722;
+    color: #edf6e9;
+}
+
+.home-dark .home-action-primary {
+    border-color: #9bdb75;
+    background: #9bdb75;
+    color: #162011;
+}
+
+@media (max-width: 700px) {
+    .home-container {
+        background-image: url('/Mobile%20Layout%20Background.png');
+        background-position: center;
+    }
+
+    .kitchen-split-header {
+        min-height: 3rem;
+        padding: 0.5rem 0.9rem;
+    }
+
+    .kitchen-split-logo-kitchen,
+    .kitchen-split-logo-split {
+        padding: 0.25rem 0.4rem;
+        font-size: 0.9rem;
+    }
+
+    .header-theme-toggle {
+        width: 2rem;
+        height: 2rem;
+    }
+
+    .home-content {
+        justify-content: flex-start;
+        padding: 4.5rem 1.25rem 1.5rem;
+    }
+
+    .home-intro h1 {
+        font-size: 2.75rem;
+    }
+
+    .home-intro > p:last-child {
+        font-size: 1rem;
+    }
+
+    .home-actions {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        width: min(100%, 19rem);
+    }
+
+    .home-actions > div,
+    .home-action {
+        width: 100%;
+        box-sizing: border-box;
+    }
+}
 
 .home-container {
   display: flex;

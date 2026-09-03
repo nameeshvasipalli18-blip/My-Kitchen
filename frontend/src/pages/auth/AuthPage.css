@@ -116,6 +116,40 @@
   outline-offset: 1px;
 }
 
+.auth-password-input {
+  position: relative;
+  display: block;
+}
+
+.auth-password-input input {
+  box-sizing: border-box;
+  width: 100%;
+  padding-right: 3rem;
+}
+
+.auth-card .auth-password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 0.35rem;
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  place-items: center;
+  transform: translateY(-50%);
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: #427d1e;
+}
+
+.auth-card .auth-password-toggle:hover,
+.auth-card .auth-password-toggle:focus-visible {
+  background: #e6f2de;
+  outline: 2px solid rgba(115, 187, 55, 0.35);
+  outline-offset: 1px;
+}
+
 .auth-card .auth-remember-me {
   display: inline-flex;
   width: fit-content;
@@ -184,6 +218,27 @@
   border-color: #4a6940;
   background: #283722;
   color: #edf6e9;
+}
+
+.auth-dark .auth-card form > button {
+  background: #9bdb75;
+  color: #162011;
+}
+
+.auth-dark .auth-card form > button:hover,
+.auth-dark .auth-card form > button:focus-visible {
+  background: #b6ea99;
+  outline: 2px solid rgba(155, 219, 117, 0.45);
+  outline-offset: 2px;
+}
+
+.auth-dark .auth-card .auth-password-toggle {
+  color: #9bdb75;
+}
+
+.auth-dark .auth-card .auth-password-toggle:hover,
+.auth-dark .auth-card .auth-password-toggle:focus-visible {
+  background: #3a5031;
 }
 
 @media (max-width: 480px) {
