@@ -29,6 +29,7 @@ from app.schemas.auth import (
     RegisterRequest,
     ResetPasswordRequest,
     UserResponse,
+    UsernameUpdateRequest,
 )
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -172,6 +173,30 @@ def logout(
 
 @router.get("/me", response_model=UserResponse)
 def me(user: UserTable = Depends(get_current_user)):
+    return serialize_user(user)
+
+
+@router.put("/me/username", response_model=UserResponse)
+def update_username(
+    data: UsernameUpdateRequest,
+    user: UserTable = Depends(get_current_user),
+    session: Session = Depends(get_session),
+):
+    username = normalize_username(data.username)
+    if not username:
+        raise HTTPException(status_code=400, detail="Username is required")
+
+    existing_user = session.exec(
+        select(UserTable).where(UserTable.username == username, UserTable.id != user.id)
+    ).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Username is already in use")
+
+    user.username = username
+    user.updated_at = utc_now()
+    session.add(user)
+    session.commit()
+    session.refresh(user)
     return serialize_user(user)
 
 

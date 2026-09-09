@@ -205,6 +205,7 @@ const Dashboard = () => {
           <div className="kitchen-grid">
             {kitchens.map((kitchen) => (
               <article className="kitchen-card" key={kitchen.id}>
+                <button className="kitchen-delete" type="button" title={`Delete ${kitchen.name}`} aria-label={`Delete ${kitchen.name}`} onClick={() => handleDeleteKitchen(kitchen)}><FaTrash aria-hidden="true" /></button>
                 <form className="kitchen-name-form" onSubmit={(event) => handleRenameKitchen(event, kitchen.id)}>
                   <input ref={(input) => { kitchenNameInputs.current[kitchen.id] = input; }} name="kitchenName" defaultValue={kitchen.name} aria-label={`Kitchen name for ${kitchen.name}`} readOnly={editingKitchenId !== kitchen.id} />
                   {canManageKitchen(kitchen) && (editingKitchenId === kitchen.id ? <><button type="submit" title="Save kitchen name" aria-label="Save kitchen name"><FaCheck aria-hidden="true" /></button><button type="button" className="kitchen-name-cancel" title="Cancel editing" aria-label="Cancel editing" onClick={() => setEditingKitchenId(null)}><FaXmark aria-hidden="true" /></button></> : <button type="button" title="Edit kitchen name" aria-label="Edit kitchen name" onClick={() => setEditingKitchenId(kitchen.id)}><FaPen aria-hidden="true" /></button>)}
@@ -217,7 +218,6 @@ const Dashboard = () => {
                 <button type="button" onClick={() => navigate(`/manual-split/${kitchen.id}`)}>
                   Open bills
                 </button>
-                <button className="kitchen-delete" type="button" title={`Delete ${kitchen.name}`} onClick={() => handleDeleteKitchen(kitchen)}><FaTrash aria-hidden="true" />Delete kitchen</button>
               </article>
             ))}
             {kitchens.length === 0 && <p>No kitchens yet. Create one to start splitting bills.</p>}

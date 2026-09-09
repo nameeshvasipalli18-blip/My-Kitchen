@@ -729,11 +729,11 @@
 
 .active-bill-total {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  margin-top: auto;
-  padding: 0.7rem 0.6rem 0.1rem;
+  padding: 0.7rem 0.6rem;
   border-top: 1px solid #e1ead9;
   color: #427d1e;
   font-size: 0.8rem;
@@ -1109,7 +1109,6 @@
 
   .enter-bills-workspace-keyboard-open .active-bill-body {
     flex: 1 1 auto;
-    padding-bottom: 0.5rem;
   }
 
   .item-entry-card {
@@ -1178,8 +1177,18 @@
     padding: 0.5rem;
   }
 
-  .active-bill-body {
-    padding-bottom: max(0.5rem, calc(var(--item-entry-bottom-offset, 0px) + 0.45rem));
+  .active-bill-header {
+    flex-wrap: nowrap;
+  }
+
+  .active-bill-header-card {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .active-bill-header-card input {
+    width: 100%;
+    min-width: 0;
   }
 
   .active-bill-item {

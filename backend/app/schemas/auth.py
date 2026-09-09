@@ -35,6 +35,10 @@ class AvoidedFoodsUpdateRequest(BaseModel):
     avoidedFoods: list[str] = Field(default_factory=list)
 
 
+class UsernameUpdateRequest(BaseModel):
+    username: str
+
+
 class AuthResponse(BaseModel):
     token: str
     user: UserResponse

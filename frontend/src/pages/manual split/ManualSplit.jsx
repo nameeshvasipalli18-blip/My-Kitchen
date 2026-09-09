@@ -30,6 +30,7 @@ const ManualSplit = () => {
   const [selectedKitchenId, setSelectedKitchenId] = useState('');
   const [avoidedFoods, setAvoidedFoods] = useState([]);
   const [newAvoidedFood, setNewAvoidedFood] = useState('');
+  const [usernameDraft, setUsernameDraft] = useState('');
   const [accountError, setAccountError] = useState('');
   const [mobileKeyboardOpen, setMobileKeyboardOpen] = useState(false);
   const viewportHeightRef = useRef(0);
@@ -211,6 +212,9 @@ const ManualSplit = () => {
         setAccountError(requestError.response?.data?.detail || 'Unable to load kitchens.');
       }
     }
+    if (nextModal === 'username') {
+      setUsernameDraft(user?.username || '');
+    }
     setModal(nextModal);
     closeAccountPanels();
   };
@@ -270,6 +274,35 @@ const ManualSplit = () => {
     }
   };
 
+  const handleSaveUsername = async (event) => {
+    event.preventDefault();
+    const username = usernameDraft.trim();
+    if (!username || username === user?.username) return;
+    try {
+      await api.put('/auth/me/username', { username });
+      setAccountError('');
+      await loadUser();
+      await refreshKitchenMembers();
+      setShoppingTrip((trip) => ({
+        ...trip,
+        participants: trip.participants.map((name) => name === user?.username ? username : name),
+        defaultPayer: trip.defaultPayer === user?.username ? username : trip.defaultPayer,
+        defaultSplit: {
+          ...trip.defaultSplit,
+          between: trip.defaultSplit.between.map((name) => name === user?.username ? username : name),
+        },
+        items: trip.items.map((item) => ({
+          ...item,
+          paidBy: item.paidBy === user?.username ? username : item.paidBy,
+          splitBetween: item.splitBetween.map((name) => name === user?.username ? username : name),
+        })),
+      }));
+      setModal(null);
+    } catch (requestError) {
+      setAccountError(requestError.response?.data?.detail || 'Unable to update username.');
+    }
+  };
+
   const canManageMembers = kitchenMembers.some((member) => member.username === user?.username && ['owner', 'admin'].includes(member.role));
 
   return (
@@ -292,6 +325,7 @@ const ManualSplit = () => {
             <AnimatePresence>
               {accountMenuOpen && (
                 <motion.div id="header-account-dropdown" className="header-account-dropdown" initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.16 }}>
+                  <button type="button" onClick={() => openModal('username')}><FaPenToSquare aria-hidden="true" />Edit username</button>
                   <button type="button" onMouseEnter={() => setActiveAccountOption('members')} onFocus={() => setActiveAccountOption('members')} onClick={() => setActiveAccountOption('members')}><FaUsers aria-hidden="true" />Members</button>
                   <button type="button" onMouseEnter={() => setActiveAccountOption('kitchens')} onFocus={() => setActiveAccountOption('kitchens')} onClick={() => setActiveAccountOption('kitchens')}><FaUtensils aria-hidden="true" />Kitchens</button>
                   <button type="button" onMouseEnter={() => setActiveAccountOption('foods')} onFocus={() => setActiveAccountOption('foods')} onClick={() => setActiveAccountOption('foods')}>Avoided foods</button>
@@ -311,9 +345,10 @@ const ManualSplit = () => {
         {modal && (
           <motion.div className="account-modal-backdrop" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={() => setModal(null)}>
             <motion.section className="account-modal" role="dialog" aria-modal="true" aria-labelledby="account-modal-title" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }} onMouseDown={(event) => event.stopPropagation()}>
-              <header><h2 id="account-modal-title">{modal === 'members' ? 'Add kitchen member' : modal === 'kitchens' ? 'Manage kitchens' : 'Avoided foods'}</h2><button className="account-modal-close" type="button" aria-label="Close dialog" title="Close" onClick={() => setModal(null)}><FaXmark aria-hidden="true" /></button></header>
+              <header><h2 id="account-modal-title">{modal === 'members' ? 'Add kitchen member' : modal === 'kitchens' ? 'Manage kitchens' : modal === 'username' ? 'Edit username' : 'Avoided foods'}</h2><button className="account-modal-close" type="button" aria-label="Close dialog" title="Close" onClick={() => setModal(null)}><FaXmark aria-hidden="true" /></button></header>
               {modal === 'members' && <form onSubmit={handleAddMember}><label>Email or username<input value={memberIdentifier} onChange={(event) => setMemberIdentifier(event.target.value)} autoFocus /></label><button type="submit">Add member</button></form>}
               {modal === 'kitchens' && <><div className="account-modal-list">{kitchens.map((kitchen) => <button key={kitchen.id} type="button" className={Number(selectedKitchenId) === kitchen.id ? 'account-modal-list-selected' : ''} onClick={() => { setSelectedKitchenId(String(kitchen.id)); setKitchenDraftName(kitchen.name); }}>{kitchen.name}</button>)}</div><form onSubmit={handleSaveKitchen}><label>Kitchen name<input value={kitchenDraftName} onChange={(event) => setKitchenDraftName(event.target.value)} placeholder="New kitchen name" /></label><div className="account-modal-actions"><button type="button" onClick={() => { setSelectedKitchenId(''); setKitchenDraftName(''); }}>New kitchen</button><button type="submit">{selectedKitchenId ? 'Save kitchen' : 'Add kitchen'}</button></div></form></>}
+              {modal === 'username' && <form onSubmit={handleSaveUsername}><label>Username<input value={usernameDraft} onChange={(event) => setUsernameDraft(event.target.value)} autoFocus /></label><button type="submit">Save username</button></form>}
               {modal === 'foods' && <form onSubmit={handleSaveAvoidedFoods}><div className="account-food-editor">{avoidedFoods.map((food, index) => <label key={`${food}-${index}`}>Avoided food<input value={food} onChange={(event) => setAvoidedFoods((foods) => foods.map((item, itemIndex) => itemIndex === index ? event.target.value : item))} /><button type="button" onClick={() => setAvoidedFoods((foods) => foods.filter((_, itemIndex) => itemIndex !== index))}>Remove</button></label>)}</div><label>Add food<input value={newAvoidedFood} onChange={(event) => setNewAvoidedFood(event.target.value)} placeholder="e.g. peanuts" /></label><button type="submit">Save foods</button></form>}
               {accountError && <p className="account-modal-error">{accountError}</p>}
             </motion.section>

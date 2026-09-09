@@ -74,8 +74,6 @@ export const EnterBillsWorkspace = ({ kitchenId, initialInputs, shoppingTrip, se
       } else {
         activeBillCard.style.removeProperty('--active-bill-max-height');
       }
-      const visibleViewportHeight = window.visualViewport?.height || window.innerHeight;
-      activeBillCard.style.setProperty('--item-entry-bottom-offset', `${Math.max(0, visibleViewportHeight - entryCardTop)}px`);
     };
 
     updateActiveBillMaxHeight();
@@ -367,10 +365,10 @@ export const EnterBillsWorkspace = ({ kitchenId, initialInputs, shoppingTrip, se
               </div></>}
             </motion.article>
           ))}
-          <div className="active-bill-total">
-            <span>Total bill</span>
-            <strong>£{activeBillTotal.toFixed(2)}</strong>
-          </div>
+        </div>
+        <div className="active-bill-total">
+          <span>Total bill</span>
+          <strong>&pound;{activeBillTotal.toFixed(2)}</strong>
         </div>
         <footer className="active-bill-footer"><button type="button" disabled={shoppingTrip.items.length === 0 || saving} onClick={saveBill}><FaFloppyDisk aria-hidden="true" /><span>{saving ? 'Saving...' : 'Save bill'}</span></button></footer>
       </motion.section>
