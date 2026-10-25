@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import delete
 from sqlmodel import Session, select
 
 from app.core.db import get_session
@@ -122,18 +123,12 @@ def _validate_kitchen_people(kitchen_id: int, payload: BillPayload, session: Ses
 
 
 def _clear_bill_children(session: Session, bill_id: int) -> None:
-    default_rows = session.exec(select(BillDefaultSplitParticipantTable).where(BillDefaultSplitParticipantTable.bill_id == bill_id)).all()
-    for row in default_rows:
-        session.delete(row)
-    participant_rows = session.exec(select(BillParticipantTable).where(BillParticipantTable.bill_id == bill_id)).all()
-    for row in participant_rows:
-        session.delete(row)
-    items = session.exec(select(BillItemTable).where(BillItemTable.bill_id == bill_id)).all()
-    for item in items:
-        split_rows = session.exec(select(BillItemSplitTable).where(BillItemSplitTable.item_id == item.id)).all()
-        for split in split_rows:
-            session.delete(split)
-        session.delete(item)
+    # Delete in foreign-key order with a fixed number of database round trips.
+    item_ids = select(BillItemTable.id).where(BillItemTable.bill_id == bill_id)
+    session.exec(delete(BillItemSplitTable).where(BillItemSplitTable.item_id.in_(item_ids)))
+    session.exec(delete(BillItemTable).where(BillItemTable.bill_id == bill_id))
+    session.exec(delete(BillDefaultSplitParticipantTable).where(BillDefaultSplitParticipantTable.bill_id == bill_id))
+    session.exec(delete(BillParticipantTable).where(BillParticipantTable.bill_id == bill_id))
 
 
 def _persist_bill_payload(
