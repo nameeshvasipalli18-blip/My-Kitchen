@@ -10,15 +10,19 @@ export const Results = ({ result }) => {
 			? new Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric' }).format(new Date(year, monthNumber - 1, 1))
 			: month;
 	};
-	const [selectedScope, setSelectedScope] = useState(null);
-	const activeMonthlyResult = monthlyResults.find((monthResult) => monthResult.month === selectedScope) || monthlyResults[0];
-	const showingAllItems = Boolean(allResult) && (selectedScope === 'all' || !activeMonthlyResult);
-	const splitResult = showingAllItems ? allResult : activeMonthlyResult?.result || allResult || result;
-	const resultLabel = showingAllItems
-		? 'All time'
-		: activeMonthlyResult
-			? formatMonth(activeMonthlyResult.month)
-			: 'Split';
+	const [selectedScope, setSelectedScope] = useState(() => {
+		const today = new Date();
+		return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+	});
+	const today = new Date();
+	const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+	const months = [...new Set([currentMonth, ...monthlyResults.map(({ month }) => month), ...(selectedScope === 'all' ? [] : [selectedScope])])].sort().reverse();
+	const activeMonthlyResult = monthlyResults.find(({ month }) => month === selectedScope);
+	const showingAllItems = selectedScope === 'all' && Boolean(allResult);
+	const splitResult = showingAllItems ? allResult : activeMonthlyResult?.result || {
+		participants: [], balances: {}, settlements: [], total: 0, tripCount: 0, itemCount: 0,
+	};
+	const resultLabel = showingAllItems ? 'All time' : formatMonth(selectedScope);
 	const settlements = Array.isArray(splitResult?.settlements) ? splitResult.settlements : [];
 	const hasNoItems = splitResult?.itemCount === 0;
 	const downloadReceipt = () => {
@@ -98,7 +102,7 @@ export const Results = ({ result }) => {
 			}
 			const receiptUrl = URL.createObjectURL(image);
 			link.href = receiptUrl;
-			link.download = `kitchen-split-receipt-${showingAllItems ? 'all-items' : activeMonthlyResult?.month || new Date().toISOString().slice(0, 10)}.png`;
+			link.download = `kitchen-split-receipt-${showingAllItems ? 'all-items' : selectedScope}.png`;
 			document.body.appendChild(link);
 			link.click();
 			link.remove();
@@ -108,20 +112,17 @@ export const Results = ({ result }) => {
 
 	return (
 		<section className="split-results" aria-live="polite">
-			{monthlyResults.length > 0 && (
-				<div className="split-month-picker">
-					<p className="split-month-title">Monthly split</p>
-					<p className="split-month-hint">Choose a month to see who pays whom, based on each bill’s date.</p>
-					<div className="split-month-buttons" role="group" aria-label="Split month">
-						{monthlyResults.map((monthResult) => (
-							<button key={monthResult.month} type="button" aria-pressed={!showingAllItems && activeMonthlyResult?.month === monthResult.month} onClick={() => setSelectedScope(monthResult.month)}>
-								{formatMonth(monthResult.month)}
-							</button>
-						))}
-						{allResult && <button type="button" aria-pressed={showingAllItems} onClick={() => setSelectedScope('all')}>All time</button>}
-					</div>
-				</div>
-			)}
+			<div className="split-month-picker">
+				<p className="split-month-title">Monthly split</p>
+				<p className="split-month-hint">Choose a month to see who pays whom, based on each bill’s date.</p>
+				<label className="split-month-field">
+					<span>Month</span>
+					<select value={selectedScope} onChange={(event) => setSelectedScope(event.target.value)}>
+						{months.map((month) => <option key={month} value={month}>{formatMonth(month)}</option>)}
+						{allResult && <option value="all">All time</option>}
+					</select>
+				</label>
+			</div>
 			<header className="split-results-header">
 				<div>
 					<p>{resultLabel} split results</p>
@@ -149,7 +150,7 @@ export const Results = ({ result }) => {
 					))}
 				</ul>
 			) : (
-				<p className="split-results-empty">{hasNoItems ? 'No saved items to split yet. Save a bill to see your monthly splits.' : 'Everyone is already settled up.'}</p>
+				<p className="split-results-empty">{hasNoItems ? (showingAllItems ? 'No saved bills to split yet.' : 'No saved bills for this month.') : 'Everyone is already settled up.'}</p>
 			)}
 		</section>
 	);

@@ -817,14 +817,15 @@ html, body {
   line-height: 1.5;
 }
 
-.split-month-buttons {
-  display: flex;
-  flex-wrap: wrap;
+.split-month-field {
+  display: grid;
   gap: 0.5rem;
+  max-width: 22rem;
 }
 
-.split-month-buttons button {
+.split-month-field select {
   min-height: 2.75rem;
+  width: 100%;
   padding: 0.6rem 0.85rem;
   border: 1px solid #c8dcb9;
   border-radius: 6px;
@@ -834,14 +835,8 @@ html, body {
   cursor: pointer;
 }
 
-.split-month-buttons button:hover {
+.split-month-field select:hover {
   border-color: #427d1e;
-}
-
-.split-month-buttons button[aria-pressed="true"] {
-  background: #427d1e;
-  border-color: #427d1e;
-  color: #fff;
 }
 
 .split-results-summary {
@@ -855,7 +850,7 @@ html, body {
   cursor: default;
 }
 
-.split-month-buttons button:focus-visible {
+.split-month-field select:focus-visible {
   outline: 2px solid #427d1e;
   outline-offset: 2px;
 }
@@ -864,17 +859,11 @@ html, body {
   background: #314a31;
 }
 
-.kitchen-split-dark .split-month-buttons button,
+.kitchen-split-dark .split-month-field select,
 .kitchen-split-dark .download-receipt-button {
   border-color: #41613b;
   background: #273a28;
   color: #e8f2e4;
-}
-
-.kitchen-split-dark .split-month-buttons button[aria-pressed="true"] {
-  background: #427d1e;
-  border-color: #73bb37;
-  color: #fff;
 }
 
 .kitchen-split-dark .split-month-picker,
@@ -887,9 +876,8 @@ html, body {
     flex-wrap: wrap;
   }
 
-  .split-month-buttons button {
-    flex: 1;
-    flex-basis: 8rem;
+  .split-month-field {
+    max-width: none;
   }
 }
 
