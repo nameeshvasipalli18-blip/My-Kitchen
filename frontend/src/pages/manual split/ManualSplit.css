@@ -800,7 +800,7 @@ html, body {
 }
 
 .split-month-picker {
-  padding: 1.25rem;
+  padding: 0.75rem 1.25rem;
   border-bottom: 1px solid #e1ead9;
   font-size: 0.8rem;
   font-weight: 700;
@@ -812,21 +812,24 @@ html, body {
 }
 
 .split-month-hint {
-  margin: 0.4rem 0 1rem;
+  margin: 0.35rem 0 0.6rem;
   font-weight: 400;
   line-height: 1.5;
 }
 
 .split-month-field {
-  display: grid;
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 0.5rem;
-  max-width: 22rem;
+  max-width: 100%;
 }
 
 .split-month-field select {
-  min-height: 2.75rem;
-  width: 100%;
-  padding: 0.6rem 0.85rem;
+  min-height: 2.25rem;
+  width: auto;
+  max-width: 100%;
+  padding: 0.4rem 0.6rem;
   border: 1px solid #c8dcb9;
   border-radius: 6px;
   background: #ffffff;
@@ -876,9 +879,6 @@ html, body {
     flex-wrap: wrap;
   }
 
-  .split-month-field {
-    max-width: none;
-  }
 }
 
 .split-settlements {
