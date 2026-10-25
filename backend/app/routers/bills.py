@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections import defaultdict
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import delete
@@ -43,66 +44,69 @@ def _membership_map(session: Session, kitchen_id: int) -> dict[str, KitchenMembe
     }
 
 
-def _username_for_membership(session: Session, membership_id: int) -> str:
-    membership = session.get(KitchenMembershipTable, membership_id)
-    if not membership:
-        return ""
-    user = session.get(UserTable, membership.user_id)
-    return user.username if user else ""
+def _serialize_bills(session: Session, bills: list[BillTable]) -> list[dict]:
+    if not bills:
+        return []
+    bill_ids = [bill.id for bill in bills]
+    participants = defaultdict(list)
+    default_between = defaultdict(list)
+    items = defaultdict(list)
+    splits = defaultdict(list)
+    membership_ids = {bill.default_payer_membership_id for bill in bills}
 
+    # One query per collection, rather than one query per bill or item.
+    for row in session.exec(select(BillParticipantTable).where(BillParticipantTable.bill_id.in_(bill_ids)).order_by(BillParticipantTable.id)).all():
+        participants[row.bill_id].append(row.membership_id)
+        membership_ids.add(row.membership_id)
+    for row in session.exec(select(BillDefaultSplitParticipantTable).where(BillDefaultSplitParticipantTable.bill_id.in_(bill_ids)).order_by(BillDefaultSplitParticipantTable.id)).all():
+        default_between[row.bill_id].append(row.membership_id)
+        membership_ids.add(row.membership_id)
+    for item in session.exec(select(BillItemTable).where(BillItemTable.bill_id.in_(bill_ids)).order_by(BillItemTable.id)).all():
+        items[item.bill_id].append(item)
+        membership_ids.add(item.paid_by_membership_id)
+    for row in session.exec(
+        select(BillItemSplitTable).join(BillItemTable, BillItemSplitTable.item_id == BillItemTable.id)
+        .where(BillItemTable.bill_id.in_(bill_ids)).order_by(BillItemSplitTable.id)
+    ).all():
+        splits[row.item_id].append(row.membership_id)
+        membership_ids.add(row.membership_id)
+    usernames = dict(session.exec(
+        select(KitchenMembershipTable.id, UserTable.username)
+        .join(UserTable, KitchenMembershipTable.user_id == UserTable.id)
+        .where(KitchenMembershipTable.id.in_(membership_ids))
+    ).all())
 
-def _excluded_member_names(session: Session, membership_by_name: dict[str, KitchenMembershipTable], item_name: str) -> set[str]:
-    normalized_item_name = item_name.strip().lower()
-    excluded = set()
-    for username, membership in membership_by_name.items():
-        user = session.get(UserTable, membership.user_id)
-        if not user:
-            continue
-        try:
-            avoided_foods = json.loads(user.avoided_foods)
-        except (TypeError, json.JSONDecodeError):
-            avoided_foods = []
-        if any(food.strip().lower() and food.strip().lower() in normalized_item_name for food in avoided_foods):
-            excluded.add(username)
-    return excluded
-
-
-def _serialize_bill(session: Session, bill: BillTable) -> dict:
-    participants = session.exec(select(BillParticipantTable).where(BillParticipantTable.bill_id == bill.id)).all()
-    default_between = session.exec(
-        select(BillDefaultSplitParticipantTable).where(BillDefaultSplitParticipantTable.bill_id == bill.id)
-    ).all()
-    items = session.exec(select(BillItemTable).where(BillItemTable.bill_id == bill.id)).all()
-
-    serialized_items = []
-    for item in items:
-        split_rows = session.exec(select(BillItemSplitTable).where(BillItemSplitTable.item_id == item.id)).all()
-        serialized_items.append(
+    serialized = []
+    for bill in bills:
+        participant_names = [usernames.get(member_id, "") for member_id in participants[bill.id]]
+        serialized_items = [
             {
                 "name": item.name,
                 "price": item.price,
-                "paidBy": _username_for_membership(session, item.paid_by_membership_id),
+                "paidBy": usernames.get(item.paid_by_membership_id, ""),
                 "splitType": item.split_type,
-                "splitBetween": [_username_for_membership(session, row.membership_id) for row in split_rows],
+                "splitBetween": [usernames.get(member_id, "") for member_id in splits[item.id]],
             }
-        )
+            for item in items[bill.id]
+        ]
+        result = calculate_split(participant_names, [ItemPayload(**item) for item in serialized_items]) if serialized_items else None
+        serialized.append({
+            "dbTripId": bill.id,
+            "id": bill.id,
+            "date": bill.date,
+            "store": bill.store,
+            "participants": participant_names,
+            "defaultPayer": usernames.get(bill.default_payer_membership_id, ""),
+            "defaultSplit": {"type": bill.default_split_type, "between": [usernames.get(member_id, "") for member_id in default_between[bill.id]]},
+            "items": serialized_items,
+            "status": bill.status,
+            "settlementResults": result["settlements"] if result else [],
+        })
+    return serialized
 
-    participant_names = [_username_for_membership(session, row.membership_id) for row in participants]
-    default_between_names = [_username_for_membership(session, row.membership_id) for row in default_between]
-    result = calculate_split(participant_names, [ItemPayload(**item) for item in serialized_items]) if serialized_items else None
 
-    return {
-        "dbTripId": bill.id,
-        "id": bill.id,
-        "date": bill.date,
-        "store": bill.store,
-        "participants": participant_names,
-        "defaultPayer": _username_for_membership(session, bill.default_payer_membership_id),
-        "defaultSplit": {"type": bill.default_split_type, "between": default_between_names},
-        "items": serialized_items,
-        "status": bill.status,
-        "settlementResults": result["settlements"] if result else [],
-    }
+def _serialize_bill(session: Session, bill: BillTable) -> dict:
+    return _serialize_bills(session, [bill])[0]
 
 
 def _validate_kitchen_people(kitchen_id: int, payload: BillPayload, session: Session) -> dict[str, KitchenMembershipTable]:
@@ -137,51 +141,68 @@ def _persist_bill_payload(
     payload: BillPayload,
     membership_by_name: dict[str, KitchenMembershipTable],
 ) -> None:
+    # Snapshot IDs and food preferences once, before any writes/expiration.
+    membership_ids = {name: membership.id for name, membership in membership_by_name.items()}
+    user_ids = [membership.user_id for membership in membership_by_name.values()]
+    foods_by_user = {}
+    for user_id, raw_foods in session.exec(select(UserTable.id, UserTable.avoided_foods).where(UserTable.id.in_(user_ids))).all():
+        try:
+            foods_by_user[user_id] = json.loads(raw_foods)
+        except (TypeError, json.JSONDecodeError):
+            foods_by_user[user_id] = []
+    foods_by_name = {name: foods_by_user.get(membership.user_id, []) for name, membership in membership_by_name.items()}
+
+    prepared_items = []
+    for item in payload.items:
+        if item.paidBy not in membership_ids:
+            raise HTTPException(status_code=400, detail=f"Unknown payer {item.paidBy}")
+        split_between = item.splitBetween
+        split_type = item.splitType.strip()
+        if split_type == "all" and not split_between:
+            split_between = payload.participants
+        elif split_type == item.paidBy and not split_between:
+            split_between = [item.paidBy]
+        excluded = {
+            name for name, foods in foods_by_name.items()
+            if any(food.strip().lower() and food.strip().lower() in item.name.lower() for food in foods)
+        }
+        split_between = [name for name in split_between if name not in excluded]
+        if not split_between:
+            raise HTTPException(status_code=400, detail=f"No eligible participants remain for {item.name} after food preferences are applied")
+        for name in split_between:
+            if name not in membership_ids:
+                raise HTTPException(status_code=400, detail=f"Unknown split participant {name}")
+        prepared_items.append((item, split_between))
+
     bill.date = payload.date
     bill.store = payload.store
-    bill.default_payer_membership_id = membership_by_name[payload.defaultPayer].id
+    bill.default_payer_membership_id = membership_ids[payload.defaultPayer]
     bill.default_split_type = payload.defaultSplit.type if payload.defaultSplit else "all"
     bill.updated_at = utc_now()
     session.add(bill)
-    session.commit()
-    session.refresh(bill)
-
-    for participant_name in payload.participants:
-        session.add(BillParticipantTable(bill_id=bill.id, membership_id=membership_by_name[participant_name].id))
-
+    session.add_all([
+        BillParticipantTable(bill_id=bill.id, membership_id=membership_ids[name])
+        for name in payload.participants
+    ])
     default_between = payload.defaultSplit.between if payload.defaultSplit else []
     if bill.default_split_type == "all" and not default_between:
         default_between = payload.participants
-    for participant_name in default_between:
-        session.add(BillDefaultSplitParticipantTable(bill_id=bill.id, membership_id=membership_by_name[participant_name].id))
-
-    for item in payload.items:
-        if item.paidBy not in membership_by_name:
-            raise HTTPException(status_code=400, detail=f"Unknown payer {item.paidBy}")
-        bill_item = BillItemTable(
-            bill_id=bill.id,
-            name=item.name.strip(),
-            price=item.price,
-            paid_by_membership_id=membership_by_name[item.paidBy].id,
-            split_type=item.splitType.strip(),
-        )
-        session.add(bill_item)
-        session.commit()
-        session.refresh(bill_item)
-        split_between = item.splitBetween
-        if bill_item.split_type == "all" and not split_between:
-            split_between = payload.participants
-        elif bill_item.split_type == item.paidBy and not split_between:
-            split_between = [item.paidBy]
-        excluded_members = _excluded_member_names(session, membership_by_name, item.name)
-        split_between = [participant_name for participant_name in split_between if participant_name not in excluded_members]
-        if not split_between:
-            raise HTTPException(status_code=400, detail=f"No eligible participants remain for {item.name} after food preferences are applied")
-        for participant_name in split_between:
-            if participant_name not in membership_by_name:
-                raise HTTPException(status_code=400, detail=f"Unknown split participant {participant_name}")
-            session.add(BillItemSplitTable(item_id=bill_item.id, membership_id=membership_by_name[participant_name].id))
-
+    session.add_all([
+        BillDefaultSplitParticipantTable(bill_id=bill.id, membership_id=membership_ids[name])
+        for name in default_between
+    ])
+    bill_items = [
+        BillItemTable(bill_id=bill.id, name=item.name.strip(), price=item.price,
+                      paid_by_membership_id=membership_ids[item.paidBy], split_type=item.splitType.strip())
+        for item, _ in prepared_items
+    ]
+    session.add_all(bill_items)
+    session.flush()  # Populate all item IDs together; do not commit per item.
+    session.add_all([
+        BillItemSplitTable(item_id=bill_item.id, membership_id=membership_ids[name])
+        for bill_item, (_, split_between) in zip(bill_items, prepared_items)
+        for name in split_between
+    ])
     session.commit()
 
 
@@ -212,7 +233,7 @@ def list_bills(
     if mine:
         statement = statement.where(BillTable.created_by_user_id == current_user.id)
     bills = session.exec(statement).all()
-    return {"trips": [_serialize_bill(session, bill) for bill in bills]}
+    return {"trips": _serialize_bills(session, bills)}
 
 
 @router.post("/{kitchen_id}/bills")
@@ -233,8 +254,7 @@ def create_bill(
         default_split_type=payload.defaultSplit.type if payload.defaultSplit else "all",
     )
     session.add(bill)
-    session.commit()
-    session.refresh(bill)
+    session.flush()
     _persist_bill_payload(session, bill, payload, membership_by_name)
     serialized = _serialize_bill(session, bill)
     return {"message": "Bill saved successfully", "tripId": bill.id, "trip": serialized, "settlementResults": serialized["settlementResults"]}
@@ -256,7 +276,6 @@ def update_bill(
         require_membership_role(membership, {"owner", "admin"})
     membership_by_name = _validate_kitchen_people(kitchen_id, payload, session)
     _clear_bill_children(session, bill_id)
-    session.commit()
     _persist_bill_payload(session, bill, payload, membership_by_name)
     serialized = _serialize_bill(session, bill)
     return {"message": "Bill updated successfully", "tripId": bill.id, "trip": serialized, "settlementResults": serialized["settlementResults"]}

@@ -139,10 +139,9 @@ const ManualSplit = () => {
     setShoppingTrips((trips) => trips.filter((savedTrip) => (savedTrip.dbTripId ?? savedTrip.id) !== persistedId));
   };
 
-  const highlightSavedTrip = async (savedId) => {
+  const highlightSavedTrip = (savedId) => {
     setNewlySavedTripId(savedId);
     setTimeout(() => setNewlySavedTripId(null), 450);
-    await loadBills();
   };
 
   const splitResult = useMemo(
