@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { EnterBillsWorkspace } from '../../components/item inputs/EnterBillsWorkspace.jsx';
 import { RecentTrips } from '../../components/item cards/RecentTrips.jsx';
 import { Results } from '../../components/results/Results.jsx';
+import { buildSplitResults } from '../../utils/splitResults.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import api from '../../api.js';
 import { FaCalculator, FaChevronDown, FaCircleUser, FaMoon, FaPenToSquare, FaReceipt, FaSun, FaUsers, FaUtensils, FaXmark } from 'react-icons/fa6';
@@ -135,7 +136,7 @@ const ManualSplit = () => {
       return;
     }
     await api.delete(`/kitchens/${kitchenId}/bills/${persistedId}`);
-    await loadBills();
+    setShoppingTrips((trips) => trips.filter((savedTrip) => (savedTrip.dbTripId ?? savedTrip.id) !== persistedId));
   };
 
   const highlightSavedTrip = async (savedId) => {
@@ -144,44 +145,10 @@ const ManualSplit = () => {
     await loadBills();
   };
 
-  const splitResult = useMemo(() => {
-    const balances = Object.fromEntries(initialInputs.map((name) => [name, 0]));
-    let total = 0;
-
-    shoppingTrips.forEach((trip) => {
-      trip.items?.forEach((item) => {
-        const amount = Number(item.price) || 0;
-        const splitBetween = item.splitBetween?.length ? item.splitBetween : trip.participants || [];
-        if (!amount || !item.paidBy || splitBetween.length === 0) {
-          return;
-        }
-        balances[item.paidBy] = (balances[item.paidBy] || 0) + amount;
-        const share = amount / splitBetween.length;
-        splitBetween.forEach((name) => {
-          balances[name] = (balances[name] || 0) - share;
-        });
-        total += amount;
-      });
-    });
-
-    const creditors = Object.entries(balances).filter(([, amount]) => amount > 0.005).map(([name, amount]) => ({ name, amount }));
-    const debtors = Object.entries(balances).filter(([, amount]) => amount < -0.005).map(([name, amount]) => ({ name, amount: -amount }));
-    const settlements = [];
-    let creditorIndex = 0;
-    let debtorIndex = 0;
-    while (creditorIndex < creditors.length && debtorIndex < debtors.length) {
-      const creditor = creditors[creditorIndex];
-      const debtor = debtors[debtorIndex];
-      const amount = Math.min(creditor.amount, debtor.amount);
-      settlements.push({ from: debtor.name, to: creditor.name, amount });
-      creditor.amount -= amount;
-      debtor.amount -= amount;
-      if (creditor.amount < 0.005) creditorIndex += 1;
-      if (debtor.amount < 0.005) debtorIndex += 1;
-    }
-
-    return { participants: initialInputs, balances, settlements, total };
-  }, [initialInputs, shoppingTrips]);
+  const splitResult = useMemo(
+    () => buildSplitResults(initialInputs, shoppingTrips),
+    [initialInputs, shoppingTrips],
+  );
 
   const handleLogout = async () => {
     setAccountMenuOpen(false);

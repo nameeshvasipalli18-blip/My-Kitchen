@@ -1,9 +1,27 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { FaMagnifyingGlass, FaPen, FaReceipt, FaTrash } from 'react-icons/fa6';
 import './RecentTrips.css';
 
 export const RecentTrips = ({ participants, shoppingTrips, newlySavedTripId, onEditTrip, onDeleteTrip, isMenuOpen, showMenuToggle = true }) => {
   const trips = Array.isArray(shoppingTrips) ? shoppingTrips : [];
+  const pendingDeletes = useRef(new Set());
+  const [deletingIds, setDeletingIds] = useState(new Set());
+  const [deleteError, setDeleteError] = useState('');
+  const deleteTrip = async (trip) => {
+    const id = trip.dbTripId ?? trip.id;
+    if (pendingDeletes.current.has(id)) return;
+    pendingDeletes.current.add(id);
+    setDeletingIds(new Set(pendingDeletes.current));
+    setDeleteError('');
+    try {
+      await onDeleteTrip(trip);
+    } catch (requestError) {
+      setDeleteError(requestError.response?.data?.detail || 'Unable to delete this bill. Please try again.');
+    } finally {
+      pendingDeletes.current.delete(id);
+      setDeletingIds(new Set(pendingDeletes.current));
+    }
+  };
   const [isOpen, setIsOpen] = useState(false);
   const billsVisible = isMenuOpen ?? isOpen;
   const [visibleTripCount, setVisibleTripCount] = useState(5);
@@ -39,6 +57,7 @@ export const RecentTrips = ({ participants, shoppingTrips, newlySavedTripId, onE
 
   return (
     <aside className="recent-trips-menu" aria-label="Recent bills">
+      {deleteError && <p className="split-error" role="alert">{deleteError}</p>}
       {showMenuToggle && <button
         className="recent-trips-toggle"
         type="button"
@@ -144,11 +163,11 @@ export const RecentTrips = ({ participants, shoppingTrips, newlySavedTripId, onE
                 <span className="recent-trip-payer" style={{ "--payer-color": payer?.theme.primary }}>
                   {trip.defaultPayer}
                 </span>
-                <button className="recent-trip-action" type="button" title="Edit bill" aria-label="Edit bill" onClick={() => onEditTrip(trip)}>
+                <button className="recent-trip-action" type="button" title="Edit bill" aria-label="Edit bill" disabled={deletingIds.has(trip.dbTripId ?? trip.id)} onClick={() => onEditTrip(trip)}>
                   <FaPen aria-hidden="true" />
                 </button>
-                <button className="recent-trip-action recent-trip-action-delete" type="button" title="Delete bill" aria-label="Delete bill" onClick={() => onDeleteTrip(trip)}>
-                  <FaTrash aria-hidden="true" />
+                <button className="recent-trip-action recent-trip-action-delete" type="button" title={deletingIds.has(trip.dbTripId ?? trip.id) ? 'Deleting…' : 'Delete bill'} aria-label={deletingIds.has(trip.dbTripId ?? trip.id) ? 'Deleting bill' : 'Delete bill'} aria-busy={deletingIds.has(trip.dbTripId ?? trip.id)} disabled={deletingIds.has(trip.dbTripId ?? trip.id)} onClick={() => deleteTrip(trip)}>
+                  {deletingIds.has(trip.dbTripId ?? trip.id) ? <span aria-hidden="true">…</span> : <FaTrash aria-hidden="true" />}
                 </button>
               </div>
             );

@@ -10,16 +10,17 @@ export const Results = ({ result }) => {
 			? new Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric' }).format(new Date(year, monthNumber - 1, 1))
 			: month;
 	};
-	const [selectedScope, setSelectedScope] = useState('all');
+	const [selectedScope, setSelectedScope] = useState(null);
 	const activeMonthlyResult = monthlyResults.find((monthResult) => monthResult.month === selectedScope) || monthlyResults[0];
-	const showingAllItems = selectedScope === 'all' && Boolean(allResult);
+	const showingAllItems = Boolean(allResult) && (selectedScope === 'all' || !activeMonthlyResult);
 	const splitResult = showingAllItems ? allResult : activeMonthlyResult?.result || allResult || result;
 	const resultLabel = showingAllItems
-		? 'All saved items'
+		? 'All time'
 		: activeMonthlyResult
 			? formatMonth(activeMonthlyResult.month)
 			: 'Split';
 	const settlements = Array.isArray(splitResult?.settlements) ? splitResult.settlements : [];
+	const hasNoItems = splitResult?.itemCount === 0;
 	const downloadReceipt = () => {
 		const participants = Array.isArray(splitResult?.participants) ? splitResult.participants : [];
 		const balances = Object.entries(splitResult?.balances || {});
@@ -107,26 +108,34 @@ export const Results = ({ result }) => {
 
 	return (
 		<section className="split-results" aria-live="polite">
+			{monthlyResults.length > 0 && (
+				<div className="split-month-picker">
+					<p className="split-month-title">Monthly split</p>
+					<p className="split-month-hint">Choose a month to see who pays whom, based on each bill’s date.</p>
+					<div className="split-month-buttons" role="group" aria-label="Split month">
+						{monthlyResults.map((monthResult) => (
+							<button key={monthResult.month} type="button" aria-pressed={!showingAllItems && activeMonthlyResult?.month === monthResult.month} onClick={() => setSelectedScope(monthResult.month)}>
+								{formatMonth(monthResult.month)}
+							</button>
+						))}
+						{allResult && <button type="button" aria-pressed={showingAllItems} onClick={() => setSelectedScope('all')}>All time</button>}
+					</div>
+				</div>
+			)}
 			<header className="split-results-header">
 				<div>
 					<p>{resultLabel} split results</p>
 					<strong>Total: £{Number(splitResult?.total || 0).toFixed(2)}</strong>
 				</div>
-				<button className="download-receipt-button" type="button" title="Download PNG receipt" onClick={downloadReceipt}>
+				<button className="download-receipt-button" type="button" title="Download PNG receipt" onClick={downloadReceipt} disabled={hasNoItems}>
 					<FaDownload aria-hidden="true" />
 					<span>PNG receipt</span>
 				</button>
 			</header>
-			{(allResult || monthlyResults.length > 1) && (
-				<label className="split-month-picker">
-					<span>View results</span>
-					<select value={showingAllItems ? 'all' : activeMonthlyResult?.month || ''} onChange={(event) => setSelectedScope(event.target.value)}>
-						{allResult && <option value="all">All saved items</option>}
-						{monthlyResults.map((monthResult) => (
-							<option key={monthResult.month} value={monthResult.month}>{formatMonth(monthResult.month)}</option>
-						))}
-					</select>
-				</label>
+			{typeof splitResult?.tripCount === 'number' && (
+				<p className="split-results-summary">
+					{splitResult.tripCount} saved {splitResult.tripCount === 1 ? 'bill' : 'bills'} · {splitResult.itemCount} {splitResult.itemCount === 1 ? 'item' : 'items'}
+				</p>
 			)}
 			{settlements.length > 0 ? (
 				<ul className="split-settlements">
@@ -140,7 +149,7 @@ export const Results = ({ result }) => {
 					))}
 				</ul>
 			) : (
-				<p className="split-results-empty">Everyone is already settled up.</p>
+				<p className="split-results-empty">{hasNoItems ? 'No saved items to split yet. Save a bill to see your monthly splits.' : 'Everyone is already settled up.'}</p>
 			)}
 		</section>
 	);

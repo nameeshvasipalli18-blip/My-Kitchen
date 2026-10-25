@@ -800,24 +800,97 @@ html, body {
 }
 
 .split-month-picker {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.75rem 1.25rem;
+  padding: 1.25rem;
   border-bottom: 1px solid #e1ead9;
   font-size: 0.8rem;
   font-weight: 700;
 }
 
-.split-month-picker select {
-  min-width: 10rem;
-  padding: 0.4rem 0.5rem;
+.split-month-title {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.split-month-hint {
+  margin: 0.4rem 0 1rem;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+.split-month-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.split-month-buttons button {
+  min-height: 2.75rem;
+  padding: 0.6rem 0.85rem;
   border: 1px solid #c8dcb9;
   border-radius: 6px;
   background: #ffffff;
   color: #244615;
   font: inherit;
+  cursor: pointer;
+}
+
+.split-month-buttons button:hover {
+  border-color: #427d1e;
+}
+
+.split-month-buttons button[aria-pressed="true"] {
+  background: #427d1e;
+  border-color: #427d1e;
+  color: #fff;
+}
+
+.split-results-summary {
+  margin: 0;
+  padding: 0.75rem 1.25rem 0;
+  font-size: 0.85rem;
+}
+
+.download-receipt-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.split-month-buttons button:focus-visible {
+  outline: 2px solid #427d1e;
+  outline-offset: 2px;
+}
+
+.kitchen-split-dark .split-results-header {
+  background: #314a31;
+}
+
+.kitchen-split-dark .split-month-buttons button,
+.kitchen-split-dark .download-receipt-button {
+  border-color: #41613b;
+  background: #273a28;
+  color: #e8f2e4;
+}
+
+.kitchen-split-dark .split-month-buttons button[aria-pressed="true"] {
+  background: #427d1e;
+  border-color: #73bb37;
+  color: #fff;
+}
+
+.kitchen-split-dark .split-month-picker,
+.kitchen-split-dark .split-settlements li {
+  border-color: #41613b;
+}
+
+@media (max-width: 480px) {
+  .split-results-header {
+    flex-wrap: wrap;
+  }
+
+  .split-month-buttons button {
+    flex: 1;
+    flex-basis: 8rem;
+  }
 }
 
 .split-settlements {
