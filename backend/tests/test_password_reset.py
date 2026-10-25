@@ -60,6 +60,15 @@ class EmailTests(unittest.TestCase):
             with self.assertRaises(mail.PasswordResetEmailError):
                 mail.send_password_reset_email('user@example.com', 'secret-token')
 
+    def test_provider_code_is_safe_to_log(self):
+        with patch.object(mail.httpx, 'Client') as factory:
+            client = factory.return_value.__enter__.return_value
+            client.post.return_value = httpx.Response(401, json={'code': 'unauthorized', 'message': 'sensitive-provider-body'})
+            with self.assertRaises(mail.PasswordResetEmailError) as caught:
+                mail.send_password_reset_email('user@example.com', 'secret-token')
+            self.assertIn('code=unauthorized', str(caught.exception))
+            self.assertNotIn('sensitive-provider-body', str(caught.exception))
+
     def test_incomplete_brevo_config_does_not_use_smtp(self):
         for template_id in ['', 'invalid', '0', '-1']:
             with self.subTest(template_id=template_id), patch.dict(os.environ, {'BREVO_TEMPLATE_ID': template_id, 'SMTP_HOST': 'smtp.example.com', 'SMTP_FROM': 'sender@example.com'}):
@@ -131,11 +140,13 @@ class ResetFlowTests(unittest.TestCase):
             auth.reset_password(ResetPasswordRequest(token=second, password='new-password'), self.session)
 
     def test_delivery_failure_returns_generic_503(self):
-        with patch.object(auth, 'send_password_reset_email', side_effect=mail.PasswordResetEmailError('provider secret')):
+        with self.assertLogs(auth.logger, level='ERROR') as logs, patch.object(auth, 'send_password_reset_email', side_effect=mail.PasswordResetEmailError('Brevo rejected email (HTTP 401)')):
             with self.assertRaises(HTTPException) as caught:
                 auth.forgot_password(ForgotPasswordRequest(email=self.user.email), self.session)
         self.assertEqual(caught.exception.status_code, 503)
         self.assertEqual(caught.exception.detail, 'Unable to send password reset email')
+        self.assertIn('Brevo rejected email (HTTP 401)', logs.output[0])
+        self.assertNotIn(BREVO_ENV['BREVO_API_KEY'], logs.output[0])
 
 
 if __name__ == '__main__':

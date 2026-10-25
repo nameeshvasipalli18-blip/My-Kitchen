@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 
 from datetime import datetime, timezone
 
@@ -32,6 +33,7 @@ from app.schemas.auth import (
 )
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+logger = logging.getLogger(__name__)
 
 
 def serialize_user(user: UserTable) -> UserResponse:
@@ -88,6 +90,7 @@ def login(data: LoginRequest, session: Session = Depends(get_session)):
 @router.post("/forgot-password")
 def forgot_password(data: ForgotPasswordRequest, session: Session = Depends(get_session)):
     if not is_password_reset_email_configured():
+        logger.error("Password reset email configuration is incomplete. Check BREVO_API_KEY, BREVO_TEMPLATE_ID (positive integer), and BREVO_SENDER_EMAIL, or the SMTP fallback settings.")
         raise HTTPException(status_code=503, detail="Password reset email is not configured")
 
     email = normalize_email(data.email)
@@ -114,6 +117,9 @@ def forgot_password(data: ForgotPasswordRequest, session: Session = Depends(get_
         try:
             send_password_reset_email(user.email, token)
         except PasswordResetEmailError as error:
+            # These messages are controlled by the email service; do not log
+            # the exception traceback, which may contain provider request details.
+            logger.error("Password reset email delivery failed: %s", error)
             raise HTTPException(status_code=503, detail="Unable to send password reset email") from error
 
     return {"message": "If an account exists for that email, a password reset link has been sent."}

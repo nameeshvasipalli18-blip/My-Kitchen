@@ -66,9 +66,22 @@ def _send_brevo_email(email: str, reset_url: str) -> None:
                 json=payload,
             )
     except httpx.RequestError as error:
-        raise PasswordResetEmailError("Unable to connect to Brevo") from error
+        raise PasswordResetEmailError(f"Unable to connect to Brevo ({type(error).__name__})") from error
     if response.status_code != 201:
-        raise PasswordResetEmailError(f"Brevo rejected email (HTTP {response.status_code})")
+        # Log only known provider codes, never raw responses containing user data.
+        try:
+            body = response.json()
+        except ValueError:
+            body = None
+        code = body.get("code") if isinstance(body, dict) else None
+        safe_codes = (
+            "invalid_parameter", "missing_parameter", "unauthorized",
+            "permission_denied", "document_not_found", "account_under_validation",
+            "not_enough_credits", "duplicate_parameter", "method_not_allowed",
+            "out_of_range", "bad_request",
+        )
+        detail = f", code={code}" if code in safe_codes else ""
+        raise PasswordResetEmailError(f"Brevo rejected email (HTTP {response.status_code}{detail})")
 
 
 def _send_smtp_email(email: str, reset_url: str) -> None:
