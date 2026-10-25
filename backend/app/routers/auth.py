@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import smtplib
 
 from datetime import datetime, timezone
 
@@ -10,7 +9,7 @@ from sqlmodel import Session, or_, select
 
 from app.core.db import get_session
 from app.core.dependencies import get_current_user
-from app.core.email import is_password_reset_email_configured, send_password_reset_email
+from app.core.email import PasswordResetEmailError, is_password_reset_email_configured, send_password_reset_email
 from app.core.security import (
     create_access_token,
     create_password_reset_token,
@@ -114,7 +113,7 @@ def forgot_password(data: ForgotPasswordRequest, session: Session = Depends(get_
         session.commit()
         try:
             send_password_reset_email(user.email, token)
-        except (OSError, smtplib.SMTPException) as error:
+        except PasswordResetEmailError as error:
             raise HTTPException(status_code=503, detail="Unable to send password reset email") from error
 
     return {"message": "If an account exists for that email, a password reset link has been sent."}

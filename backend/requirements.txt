@@ -1,7 +1,8 @@
-fastapi
+fastapi[standard]
 uvicorn
 pydantic
 python-dotenv
 psycopg[binary]
 sqlmodel
 python-multipart
+httpx
